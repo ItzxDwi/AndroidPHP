@@ -35,36 +35,19 @@ jobs:
       - name: Making aarch64 php
         working-directory: php-build-scripts
         run: ./compile.sh -t linux64 -j8 -P5 -g
-        
-      - name: Copy php
-        run: cp ./php-build-scripts/bin/php7/bin/php "php"
-        
-      - uses: actions/upload-artifact@v1
-        with:
-          name: "php"
-          path: "./php"
-          
-      - name: Copy php.ini
-        run: cp ./php-build-scripts/bin/php7/bin/php.ini ./php.ini
-        
-      - uses: actions/upload-artifact@v1
-        with:
-          name: php.ini
-          path: "./php.ini"
 
-      - name: Download a Build Artifact(php)
-        uses: actions/download-artifact@v2
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
         with:
-          name: php
-      - name: Download a Build Artifact(php.ini)
-        uses: actions/download-artifact@v2
+          name: release_artifacts
+          path: |
+            ${{ github.workspace }}/php
+            ${{ github.workspace }}/php.ini
+
+      - name: Create draft release
+        uses: ncipollo/release-action@v1.14.0
         with:
-          name: php.ini
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: PHP Lastest
-          name: Release the lastest PHP
-          files: |
-            php
-            php.ini
+          artifacts: ${{ github.workspace }}/php,${{ github.workspace }}/php.ini
+          draft: true
+          name: Latest PHP
+          token: ${{ secrets.GITHUB_TOKEN }
