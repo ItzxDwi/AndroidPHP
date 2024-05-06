@@ -30,8 +30,8 @@ jobs:
       - name: Install tools and dependencies
         run: |
           sudo apt update &> /dev/null
-          sudo apt install -y make autoconf automake m4 getconf gzip bzip2 bison g++ git cmake pkg-config re2c &> /dev/null
-
+          sudo apt install -y re2c libtool libtool-bin zlib1g-dev libcurl4-openssl-dev libxml2-dev libyaml-dev libgmp-dev libzip-dev libssl-dev &> /dev/null
+          
       - name: Making aarch64 php
         working-directory: php-build-scripts
         run: ./compile.sh -t android-aarch64 -x -j4 -PM5 -g
