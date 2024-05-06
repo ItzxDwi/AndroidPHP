@@ -1,8 +1,6 @@
 name: Build PHP Binaries
 
 on: 
- push:
- pull_request:
  workflow_dispatch:
 
 jobs: 
@@ -18,16 +16,19 @@ jobs:
          ref: stable
       - name: Init directories
         run: mkdir -p aarch64-linux-musl
+        
       - name: Fetch aarch64-linux-musl from github
         working-directory: aarch64-linux-musl
         run: wget -q -O "aarch64-linux-musl.tar.xz" "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz"
+        
       - name: Unzip aarch64-linux-musl
         working-directory: aarch64-linux-musl
         run: tar Jxfv aarch64-linux-musl.tar.xz
+        
         - name: Install tools and dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install make autoconf automake libtool libtool-bin m4 curl libc-bin gzip bzip2 bison g++ git re2c ca-certificates
+          sudo apt-get install make autoconf automake libtool libtool-bin m4 curl libc-bin gzip bzip2 bison g++ git re2c ca-certificate
       - name: Making aarch64 php
         working-directory: php-build-scripts
         run: ./compile.sh -t android-aarch64 -x -j4 -PM5 -g
