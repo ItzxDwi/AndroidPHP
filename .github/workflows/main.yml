@@ -9,12 +9,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-        with:
-         repository: NetherGamesMC/php-build-scripts
-         path: php-build-scripts
-         ref: stable
-         
       - name: Init directories
         run: mkdir -p aarch64-linux-musl
         
@@ -25,6 +19,12 @@ jobs:
       - name: Unzip aarch64-linux-musl
         working-directory: aarch64-linux-musl
         run: tar Jxfv aarch64-linux-musl.tar.xz
+
+      - uses: actions/checkout@v2
+        with:
+         repository: NetherGamesMC/php-build-scripts
+         path: php-build-scripts
+         ref: stable
         
       - name: Install tools and dependencies
         run: |
