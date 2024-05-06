@@ -29,7 +29,7 @@ jobs:
         
       - name: Install tools and dependencies
         run: |
-          sudo apt-get update
+          sudo apt-get update &> /dev/null
           sudo apt-get install -y make autoconf automake m4 getconf gzip bzip2 bison g++ git cmake pkg-config re2c &> /dev/null
 
       - name: Making aarch64 php
