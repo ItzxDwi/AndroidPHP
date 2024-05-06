@@ -8,8 +8,7 @@ on:
 jobs: 
   android:
     name: Android (PM 5)
-    runs-on: ubuntu-20.04
-    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -25,17 +24,14 @@ jobs:
       - name: Unzip aarch64-linux-musl
         working-directory: aarch64-linux-musl
         run: tar Jxfv aarch64-linux-musl.tar.xz
-      - name: Patch compile.sh
-        working-directory: php-build-scripts
-        run: sed -i=".backup" 's/LIBZIP_VERSION=".*"/LIBZIP_VERSION="1.9.2"/' ./compile.sh
-
-      - name: Install tools and dependencies
+        - name: Install tools and dependencies
         run: |
           sudo apt-get update
           sudo apt-get install make autoconf automake libtool libtool-bin m4 curl libc-bin gzip bzip2 bison g++ git re2c ca-certificates
       - name: Making aarch64 php
         working-directory: php-build-scripts
         run: ./compile.sh -t android-aarch64 -x -j4 -PM5 -g
+        
       - name: Copy php
         run: cp ./php-build-scripts/bin/php7/bin/php "php"
         
