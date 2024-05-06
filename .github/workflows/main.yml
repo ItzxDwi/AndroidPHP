@@ -14,6 +14,7 @@ jobs:
          repository: NetherGamesMC/php-build-scripts
          path: php-build-scripts
          ref: stable
+         
       - name: Init directories
         run: mkdir -p aarch64-linux-musl
         
@@ -25,7 +26,7 @@ jobs:
         working-directory: aarch64-linux-musl
         run: tar Jxfv aarch64-linux-musl.tar.xz
         
-        - name: Install tools and dependencies
+      - name: Install tools and dependencies
         run: |
           sudo apt-get update
           sudo apt-get install make autoconf automake libtool libtool-bin m4 curl libc-bin gzip bzip2 bison g++ git re2c ca-certificate
