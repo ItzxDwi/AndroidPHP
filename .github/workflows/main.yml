@@ -24,7 +24,7 @@ jobs:
         with:
          repository: NetherGamesMC/php-build-scripts
          path: php-build-scripts
-         ref: stable
+         ref: php/8.2
         
       - name: Install tools and dependencies
         run: |
