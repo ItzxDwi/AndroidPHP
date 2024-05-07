@@ -44,10 +44,11 @@ jobs:
             ${{ github.workspace }}/php
             ${{ github.workspace }}/php.ini
 
-      - name: Create draft release
-        uses: ncipollo/release-action@v1.14.0
+      - name: Create release
+        uses: marvinpinto/action-automatic-releases@latest
         with:
-          artifacts: ${{ github.workspace }}/php,${{ github.workspace }}/php.ini
-          draft: true
-          name: Latest PHP
-          token: ${{ secrets.GITHUB_TOKEN }
+          files: |
+            php
+            php.ini
+          title: Latest PHP
+          repo_token: ${{ secrets.GITHUB_TOKEN }
