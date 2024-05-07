@@ -21,7 +21,9 @@ jobs:
         
       - name: Unzip aarch64-linux-musl
         working-directory: aarch64-linux-musl
-        run: tar Jxfv aarch64-linux-musl.tar.xz
+        run: |
+         tar Jxfv aarch64-linux-musl.tar.xz
+         echo "$(pwd)/bin" >> $GITHUB_PATH
           
       - uses: actions/checkout@v4
         with:
