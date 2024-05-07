@@ -21,7 +21,7 @@ jobs:
         
       - name: Unzip aarch64-linux-musl
         working-directory: aarch64-linux-musl
-        run: tar Jxfv aarch64-linux-musl.tar.xz > /dev/null
+        run: tar Jxfv aarch64-linux-musl.tar.xz
           
       - uses: actions/checkout@v4
         with:
