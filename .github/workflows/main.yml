@@ -34,7 +34,7 @@ jobs:
           
       - name: Making aarch64 php
         working-directory: php-build-scripts
-        run: ./compile.sh -t linux64 -j8 -P5 -g
+        run: ./compile.sh -t linux64 -j14 -P5 -g
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
@@ -51,4 +51,5 @@ jobs:
             php
             php.ini
           title: Latest PHP
+          automatic_release_tag: "latest"
           repo_token: ${{ secrets.GITHUB_TOKEN }}
