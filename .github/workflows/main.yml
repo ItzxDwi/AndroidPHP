@@ -51,4 +51,4 @@ jobs:
             php
             php.ini
           title: Latest PHP
-          repo_token: ${{ secrets.GITHUB_TOKEN }
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
