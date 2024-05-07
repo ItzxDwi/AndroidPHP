@@ -11,26 +11,19 @@ jobs:
 
     strategy:
       fail-fast: false
-      matrix:
-          include:
-            - option: "-g -P5"
-              name: "-next-major-gd"
-              branch: "php/8.2"
-              upload-php-ini: "-next-major-gd"
-              musl-cross-make-repo: "DaisukeDaisuke/musl-cross-make"
-            # Please note that if editing the matrix, the release workflow must also be edited.
+      
     steps:
       - name: Init directories
         run: mkdir -p aarch64-linux-musl
       - name: Fetch aarch64-linux-musl from github release
         working-directory: aarch64-linux-musl
-        run: wget -q -O "aarch64-linux-musl.tar.xz" "https://github.com/${{ matrix.musl-cross-make-repo }}/releases/latest/download/aarch64-linux-musl.tar.xz"
+        run: wget -q -O "aarch64-linux-musl.tar.xz" "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz"
         
       - name: Unzip aarch64-linux-musl
         working-directory: aarch64-linux-musl
         run: tar Jxfv aarch64-linux-musl.tar.xz > /dev/null
           
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v4
         with:
          repository: NetherGamesMC/php-build-scripts
          path: php-build-scripts
