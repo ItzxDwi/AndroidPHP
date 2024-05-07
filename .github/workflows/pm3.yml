@@ -27,7 +27,7 @@ jobs:
           
       - uses: actions/checkout@v4
         with:
-         repository: NetherGamesMC/php-build-scripts
+         repository: pmmp/PHP-Binaries
          path: php-build-scripts
          ref: php/8.2
 
