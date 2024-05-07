@@ -40,7 +40,7 @@ jobs:
           
       - name: Making android-aarch64 php
         working-directory: php-build-scripts
-        run: ./compile.sh -t android-aarch64 -x -j14 ${{ matrix.option }}
+        run: ./compile.sh -t android-aarch64 -x -j14 -P5 -g
 
       - name: Create release
         uses: marvinpinto/action-automatic-releases@latest
