@@ -31,10 +31,6 @@ jobs:
          path: php-build-scripts
          ref: php/8.2
 
-      - name: Patching compile.sh
-        working-directory: php-build-scripts
-        run: sed -i=".backup" 's/LIBZIP_VERSION=".*"/LIBZIP_VERSION="1.9.2"/' ./compile.sh
-
       - name: Install tools and dependencies
         run: |
           sudo apt update &> /dev/null
