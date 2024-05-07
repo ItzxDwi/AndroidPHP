@@ -1,12 +1,11 @@
-name: Build PHP Binaries
+name: Build PHP Binary
 
 on:
- push:
  workflow_dispatch:
 
 jobs: 
-  android:
-    name: Android (PM 5)
+  build_binary:
+    name: Build PHP Binary
     runs-on: ubuntu-latest
 
     steps:
