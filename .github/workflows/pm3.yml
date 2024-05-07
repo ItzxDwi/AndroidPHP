@@ -28,7 +28,7 @@ jobs:
             - option: "-g -P5"
               name: "-next-major-gd"
               branch: "php/8.2"
-              upload-php-ini: "-next-major"
+              upload-php-ini: "-next-major-gd"
               musl-cross-make-repo: "DaisukeDaisuke/musl-cross-make"
             # Please note that if editing the matrix, the release workflow must also be edited.
     steps:
@@ -91,56 +91,22 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.createRelease == 'yes'}}
     steps:
-      - name: Download a Build Artifact(php)
-        uses: actions/download-artifact@v2
-        with:
-          name: php
-
-      - name: Download a Build Artifact(php-gd)
-        uses: actions/download-artifact@v2
-        with:
-          name: php-gd
-
-      - name: Download a Build Artifact(php-gd-no-modification)
-        uses: actions/download-artifact@v2
-        with:
-          name: php-gd-no-modification
-
       - name: Download a Build Artifact(php-next-major-gd)
         uses: actions/download-artifact@v2
         with:
           name: php-next-major-gd
 
-      - name: Download a Build Artifact(php-experimental-gd)
-        uses: actions/download-artifact@v2
-        with:
-          name: php-experimental-gd
-
-      - name: Download a Build Artifact(php.ini)
-        uses: actions/download-artifact@v2
-        with:
-          name: php.ini
       - name: Download a Build Artifact(php-next-major.ini)
         uses: actions/download-artifact@v2
         with:
-          name: php-next-major.ini
-      - name: Download a Build Artifact(php-experimental-gd.ini)
-        uses: actions/download-artifact@v2
-        with:
-          name: php-experimental-gd.ini
-
+          name: php-next-major-gd.ini
 
       - name: file compressions
-        run: |
-          zip -9 zip-php php
-          zip -9 zip-php-gd php-gd
-          zip -9 zip-php-gd-no-modification php-gd-no-modification
-          zip -9 zip-php-next-major-gd php-next-major-gd
-          zip -9 zip-php-experimental-gd php-experimental-gd
+        run: zip -9 zip-php-next-major-gd php-next-major-gd
           
       - name: create checksums.sha256
         run: |
-          sha256sum "php" "php-gd" "php-gd-no-modification" "php-next-major-gd" "php-experimental-gd" "zip-php.zip" "zip-php-gd.zip" "zip-php-gd-no-modification.zip" "zip-php-next-major-gd.zip" "zip-php-experimental-gd.zip" "php.ini" "php-next-major.ini" "php-experimental-gd.ini" > checksums.sha256
+          sha256sum "php-next-major-gd" "zip-php-next-major-gd.zip" "php-next-major-gd.ini" > checksums.sha256
           cat checksums.sha256
           
       - uses: actions/upload-artifact@v1
@@ -154,19 +120,8 @@ jobs:
           tag_name: ${{ github.event.inputs.tagname }}
           name: Release ${{ github.event.inputs.tagname }}
           files: |
-            php
-            php-gd
-            php-gd-no-modification
             php-next-major-gd
-            php-experimental-gd
-            zip-php.zip
-            zip-php-gd.zip
-            zip-php-gd-no-modification.zip
-            zip-php-next-major-gd.zip
-            zip-php-experimental-gd.zip
-            php.ini
-            php-next-major.ini
-            php-experimental-gd.ini
+            php-next-major-gd.ini
             checksums.sha256
           body: "The php version for this release is ${{ github.event.inputs.tagname }}.
 
@@ -180,10 +135,5 @@ This binary is for ARMv8 (aarch64, 64bit).
 
 It does not work on arm (32bit).
 
-All binaries are not compatible with pmmp3 and are for pmmp4.
-
-the php or php-gd binaries are recommended.
-
-The php version of php-next-major-gd is 8.1..
-The php version of php-experimental-gd is 8.2..
+All binaries are for PM5.
 "
