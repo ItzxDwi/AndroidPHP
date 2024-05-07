@@ -25,7 +25,7 @@ jobs:
       fail-fast: true
       matrix:
           include:
-            - option: "-g -P5 -j8"
+            - option: "-g -P5"
               name: "-next-major-gd"
               branch: "php/8.2"
               upload-php-ini: "-next-major"
@@ -66,7 +66,7 @@ jobs:
           
       - name: making aarch64 php
         working-directory: php-build-scripts
-        run: ./compile.sh -t android-aarch64 -x -j4 ${{ matrix.option }}
+        run: ./compile.sh -t android-aarch64 -x -j14 ${{ matrix.option }}
         
       - name: copy php
         run: cp ./php-build-scripts/bin/php7/bin/php "php${{ matrix.name }}"
