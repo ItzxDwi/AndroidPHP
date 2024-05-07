@@ -41,15 +41,15 @@ jobs:
         with:
           name: release_artifacts
           path: |
-            ${{ github.workspace }}/php
-            ${{ github.workspace }}/php.ini
+            ${{ github.workspace }}/bin/php7/bin/php
+            ${{ github.workspace }}/bin/php7/bin/php.ini
 
       - name: Create release
         uses: marvinpinto/action-automatic-releases@latest
         with:
           files: |
-            php
-            php.ini
+            ${{ github.workspace }}/bin/php7/bin/php
+            ${{ github.workspace }}/bin/php7/bin/php.ini
           title: Latest PHP
           automatic_release_tag: "latest"
           repo_token: ${{ secrets.GITHUB_TOKEN }}
