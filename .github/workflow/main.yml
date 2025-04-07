@@ -1,0 +1,106 @@
+on:
+  workflow_dispatch:
+    inputs:
+      tagname:
+        description: 'Tag name for release'
+        required: true
+        default: '8.1.999'
+      commithash:
+        description: 'Commit hash (optional, set to "none" to skip)'
+        required: true
+        default: 'none'
+      createRelease:
+        description: 'Set to "yes" to publish a GitHub release'
+        required: true
+        default: 'yes'
+
+name: Release Android PHP Binary
+
+jobs:
+  build:
+    name: Build PHP for Android aarch64
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Init directories
+        run: mkdir -p aarch64-linux-musl
+
+      - name: Download aarch64 toolchain
+        working-directory: aarch64-linux-musl
+        run: |
+          wget -q -O aarch64-linux-musl.tar.xz https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz
+          tar Jxfv aarch64-linux-musl.tar.xz > /dev/null
+          echo "$(pwd)/bin" >> $GITHUB_PATH
+
+      - uses: actions/checkout@v4
+        with:
+          repository: pmmp/php-build-scripts
+          path: php-build-scripts
+          ref: stable
+
+      - name: Checkout to specific commit if provided
+        if: ${{ github.event.inputs.commithash != 'none' }}
+        working-directory: php-build-scripts
+        run: git checkout ${{ github.event.inputs.commithash }}
+
+      - name: Patch compile.sh for libzip compatibility
+        working-directory: php-build-scripts
+        run: sed -i=".backup" 's/LIBZIP_VERSION=".*"/LIBZIP_VERSION="1.9.2"/' ./compile.sh || true
+
+      - name: Install build dependencies
+        run: |
+          sudo apt update &> /dev/null
+          sudo apt install -y re2c libtool libtool-bin zlib1g-dev libcurl4-openssl-dev libxml2-dev libyaml-dev libgmp-dev libzip-dev libssl-dev &> /dev/null
+
+      - name: Compile PHP
+        working-directory: php-build-scripts
+        run: ./compile.sh -t android-aarch64 -x -j8 -g -P5
+
+      - name: Copy compiled php binary and php.ini
+        run: |
+          cp ./php-build-scripts/bin/php7/bin/php ./php
+          cp ./php-build-scripts/bin/php7/bin/php.ini ./php.ini
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: android-php
+          path: |
+            ./php
+            ./php.ini
+
+  release:
+    name: Publish Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.createRelease == 'yes' }}
+
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: android-php
+
+      - name: Compress and Checksum
+        run: |
+          zip -9 php-android.zip php php.ini
+          sha256sum php php.ini php-android.zip > checksums.sha256
+          cat checksums.sha256
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.tagname }}
+          name: Android PHP Release ${{ github.event.inputs.tagname }}
+          files: |
+            php
+            php.ini
+            php-android.zip
+            checksums.sha256
+          body: |
+            PHP compiled for Android aarch64.
+
+            **Version:** ${{ github.event.inputs.tagname }}
+
+            - Target: ARM64 (aarch64)
+            - GD supported
+            - Built using `stable` branch
+            - Built with libzip 1.9.2
+            - Compatible with PMMP 5 only
