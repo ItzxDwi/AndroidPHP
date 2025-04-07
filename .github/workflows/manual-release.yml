@@ -1,3 +1,5 @@
+name: Release Android PHP Binary
+
 on:
   workflow_dispatch:
     inputs:
@@ -14,7 +16,17 @@ on:
         required: true
         default: 'yes'
 
-name: Release Android PHP Binary
+  workflow_call:
+    inputs:
+      tagname:
+        required: true
+        type: string
+      commithash:
+        required: true
+        type: string
+      createRelease:
+        required: true
+        type: string
 
 jobs:
   build:
@@ -39,9 +51,9 @@ jobs:
           ref: stable
 
       - name: Checkout to specific commit if provided
-        if: ${{ github.event.inputs.commithash != 'none' }}
+        if: ${{ inputs.commithash != 'none' }}
         working-directory: php-build-scripts
-        run: git checkout ${{ github.event.inputs.commithash }}
+        run: git checkout ${{ inputs.commithash }}
 
       - name: Patch compile.sh for libzip compatibility
         working-directory: php-build-scripts
@@ -72,7 +84,7 @@ jobs:
     name: Publish Release
     needs: build
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.createRelease == 'yes' }}
+    if: ${{ inputs.createRelease == 'yes' }}
 
     steps:
       - uses: actions/download-artifact@v4
@@ -85,10 +97,10 @@ jobs:
           sha256sum php php.ini php-android.zip > checksums.sha256
           cat checksums.sha256
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.event.inputs.tagname }}
-          name: Android PHP Release ${{ github.event.inputs.tagname }}
+          tag_name: ${{ inputs.tagname }}
+          name: Android PHP Release ${{ inputs.tagname }}
           files: |
             php
             php.ini
@@ -97,10 +109,8 @@ jobs:
           body: |
             PHP compiled for Android aarch64.
 
-            **Version:** ${{ github.event.inputs.tagname }}
+            **Version:** ${{ inputs.tagname }}
 
             - Target: ARM64 (aarch64)
             - GD2 supported
-            - Built using `stable` PHP Binaries branch
-            - Built with libzip 1.9.2
             - Compatible with PMMP 5 only
