@@ -49,6 +49,6 @@ jobs:
     if: needs.check-latest-release.outputs.new_release == 'true'
     uses: ./.github/workflows/manual-release.yml
     with:
-      tagname: ${{ needs.check-latest-release.outputs.tag_name }}
+      tagname: "Latest"
       commithash: "none"
       createRelease: "yes"
