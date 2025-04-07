@@ -100,7 +100,7 @@ jobs:
             **Version:** ${{ github.event.inputs.tagname }}
 
             - Target: ARM64 (aarch64)
-            - GD supported
-            - Built using `stable` branch
+            - GD2 supported
+            - Built using `stable` PHP Binaries branch
             - Built with libzip 1.9.2
             - Compatible with PMMP 5 only
