@@ -85,7 +85,7 @@ jobs:
           sha256sum php php.ini php-android.zip > checksums.sha256
           cat checksums.sha256
 
-      - uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tagname }}
           name: Android PHP Release ${{ github.event.inputs.tagname }}
