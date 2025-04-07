@@ -1,7 +1,8 @@
 name: Auto Trigger on PHP-Binaries Release
 
 on:
-  - cron: '*/5 * * * *'
+  schedule:
+    - cron: '*/5 * * * *'  # Every 5 minutes
   workflow_dispatch:
 
 jobs:
