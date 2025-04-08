@@ -13,12 +13,6 @@ jobs:
       new_release: ${{ steps.set-tag.outputs.new_release }}
 
     steps:
-      - name: Download last-tag artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: latest-release
-        continue-on-error: true  # First run or no artifact yet
-
       - name: Get latest release tag from pmmp/PHP-Binaries
         id: set-tag
         run: |
@@ -43,14 +37,7 @@ jobs:
             fi
           fi
           echo "tag_name=$LATEST" >> $GITHUB_OUTPUT
-
-      - name: Upload new tag state
-        uses: actions/upload-artifact@v4
-        if: steps.set-tag.outputs.new_release == 'true'
-        with:
-          name: latest-release
-          path: latest-release/.last-tag
-
+  
   run-build:
     needs: check-latest-release
     if: needs.check-latest-release.outputs.new_release == 'true'
