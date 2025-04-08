@@ -2,7 +2,7 @@ name: Auto Trigger on PHP-Binaries Release
 
 on:
   schedule:
-    - cron: '* */6 * * *'  # Every 12 hours
+    - cron: '0 */12 * * *'  # Every 12 hours
   workflow_dispatch:
 
 jobs:
@@ -13,6 +13,12 @@ jobs:
       new_release: ${{ steps.set-tag.outputs.new_release }}
 
     steps:
+      - name: Download last-tag artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: latest-release
+        continue-on-error: true  # First run or no artifact yet
+
       - name: Get latest release tag from pmmp/PHP-Binaries
         id: set-tag
         run: |
@@ -20,15 +26,16 @@ jobs:
           LATEST=$(cat latest.txt)
           echo "Latest release: $LATEST"
 
-          if [ ! -f .last-tag ]; then
-            echo "First run. Saving tag."
-            echo "$LATEST" > .last-tag
+          if [ ! -f latest-release/.last-tag ]; then
+            echo "First run or no previous tag. Saving tag."
+            mkdir -p latest-release
+            echo "$LATEST" > latest-release/.last-tag
             echo "new_release=true" >> $GITHUB_OUTPUT
           else
-            LAST=$(cat .last-tag)
+            LAST=$(cat latest-release/.last-tag)
             if [ "$LATEST" != "$LAST" ]; then
               echo "New release found: $LATEST"
-              echo "$LATEST" > .last-tag
+              echo "$LATEST" > latest-release/.last-tag
               echo "new_release=true" >> $GITHUB_OUTPUT
             else
               echo "No new release."
@@ -37,12 +44,12 @@ jobs:
           fi
           echo "tag_name=$LATEST" >> $GITHUB_OUTPUT
 
-      - name: Upload state (last seen tag)
+      - name: Upload new tag state
         uses: actions/upload-artifact@v4
         if: steps.set-tag.outputs.new_release == 'true'
         with:
           name: latest-release
-          path: .last-tag
+          path: latest-release/.last-tag
 
   run-build:
     needs: check-latest-release
