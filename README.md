@@ -76,8 +76,8 @@ wget https://github.com/pmmp/PocketMine-MP/releases/latest/download/PocketMine-M
 **Solution:**  
 You're likely using the Google Play version of Termux, which no longer supports running static binaries.
 
-1. **Uninstall** the Termux Google Play version.
-2. **Reinstall Termux** from F-droid or Github.
+1. **Uninstall** the Termux version installed from Google Play.
+2. **Reinstall Termux** from F-Droid or Github.
 
 More details:
 https://www.reddit.com/r/termux/comments/1e05wjf/tried_to_execute_arm_assembly_on_s10/
