@@ -50,7 +50,7 @@ That's it! Now your server should run correctly.
 
 **A:** Yes, as long as your device's operating system is 64-bit.
 
-### Q: How do i update the PHP Binary?
+### Q: How do I update the PHP Binary?
 
 **A:** Run the following commands:
 ```bash
@@ -60,7 +60,7 @@ wget https://github.com/ItzxDwi/AndroidPHP/releases/download/Latest/php
 chmod +x php
 ```
 
-### Q: How do i update the PocketMine-MP?
+### Q: How do I update the PocketMine-MP?
 
 **A:** Run the following commands:
 ```bash
@@ -77,7 +77,7 @@ wget https://github.com/pmmp/PocketMine-MP/releases/latest/download/PocketMine-M
 You're likely using the Google Play version of Termux, which no longer supports running static binaries.
 
 1. **Uninstall** the Termux version installed from Google Play.
-2. **Reinstall Termux** from F-Droid or Github.
+2. **Reinstall Termux** from [F-Droid](https://f-droid.org/en/packages/com.termux/) or [Github](https://github.com/termux/termux-app).
 
 More details:
 https://www.reddit.com/r/termux/comments/1e05wjf/tried_to_execute_arm_assembly_on_s10/
@@ -95,6 +95,7 @@ chmod +x start.sh
 
 **Solution:**  
 This means either the php binary is missing, not named correctly, or not placed in the correct directory. Make sure the path is:
+
 ```server/bin/php7/bin/php```
 
 
