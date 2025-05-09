@@ -32,7 +32,7 @@ chmod +x php
 ```bash
 cd ~/server
 wget https://github.com/pmmp/PocketMine-MP/releases/latest/download/PocketMine-MP.phar
-wget https://github.com/pmmp/PocketMine-MP/releases/download/5.27.1/start.sh
+wget https://github.com/pmmp/PocketMine-MP/releases/latest/download/start.sh
 chmod +x start.sh
 ```
 
