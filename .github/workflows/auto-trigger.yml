@@ -20,57 +20,74 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Restore last tag from cache
+      - name: Restore last release info from cache
         id: cache-restore
         uses: actions/cache@v4
         with:
           path: latest-release
-          key: php-binaries-last-tag-${{ github.repository }}
+          key: php-binaries-last-release-${{ github.repository }}
           restore-keys: |
-            php-binaries-last-tag-${{ github.repository }}
+            php-binaries-last-release-${{ github.repository }}
 
       - name: Get latest release info and compare
         id: set-tag
         run: |
-          # Get the actual latest release
-          API_JSON=$(curl -s https://api.github.com/repos/pmmp/PHP-Binaries/releases/latest)
-          LATEST_TAG=$(echo "$API_JSON" | jq -r .tag_name)
-          echo "Latest release tag: $LATEST_TAG"
+          # Get the latest release from the static pm5-latest tag
+          API_JSON=$(curl -s https://api.github.com/repos/pmmp/PHP-Binaries/releases/tags/pm5-latest)
+          RELEASE_ID=$(echo "$API_JSON" | jq -r .id)
+          RELEASE_NAME=$(echo "$API_JSON" | jq -r .name)
+          PUBLISHED_AT=$(echo "$API_JSON" | jq -r .published_at)
+          
+          # Get the most recent asset update time
+          ASSETS_UPDATED_AT=$(echo "$API_JSON" | jq -r '[.assets[].updated_at] | max')
+          RELEASE_CHECKSUM=$(echo "$API_JSON" | jq -r '[.assets[].digest] | join(",") | sha256sum | cut -d" " -f1')
 
-          # Extract base version
-          BASE_VERSION=$(echo "$LATEST_TAG" | grep -oE '[0-9]+\.[0-9]+')
+          echo "Release ID: $RELEASE_ID"
+          echo "Release name: $RELEASE_NAME"
+          echo "Published at: $PUBLISHED_AT"
+          echo "Latest asset update: $ASSETS_UPDATED_AT"
+          echo "Assets checksum: $RELEASE_CHECKSUM"
+
+          # Extract PHP version from assets (more reliable than name)
+          BASE_VERSION=$(echo "$API_JSON" | jq -r '.assets[0].name' | grep -oE 'PHP-[0-9]+\.[0-9]+' | head -1 | cut -d'-' -f2 || echo "8.2")
           echo "Base PHP version: $BASE_VERSION"
 
           # Output to GitHub
-          echo "tag_name=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "tag_name=pm5-latest" >> $GITHUB_OUTPUT
           echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
 
-          # Compare with cached tag
+          # Compare with cached release info
           mkdir -p latest-release
-          TAG_FILE="latest-release/.last-tag"
-          if [ ! -f "$TAG_FILE" ]; then
+          RELEASE_INFO_FILE="latest-release/.last-release"
+          
+          if [ ! -f "$RELEASE_INFO_FILE" ]; then
             echo "First run or no cache found"
-            echo "$LATEST_TAG" > "$TAG_FILE"
+            echo "$RELEASE_CHECKSUM|$ASSETS_UPDATED_AT" > "$RELEASE_INFO_FILE"
             echo "new_release=true" >> $GITHUB_OUTPUT
           else
-            LAST_TAG=$(cat "$TAG_FILE")
-            if [ "$LATEST_TAG" != "$LAST_TAG" ]; then
-              echo "New release detected (old: $LAST_TAG, new: $LATEST_TAG)"
-              echo "$LATEST_TAG" > "$TAG_FILE"
+            LAST_INFO=$(cat "$RELEASE_INFO_FILE")
+            LAST_CHECKSUM=$(echo "$LAST_INFO" | cut -d'|' -f1)
+            LAST_UPDATED_AT=$(echo "$LAST_INFO" | cut -d'|' -f2)
+            
+            if [ "$RELEASE_CHECKSUM" != "$LAST_CHECKSUM" ] || [ "$ASSETS_UPDATED_AT" != "$LAST_UPDATED_AT" ]; then
+              echo "New release detected:"
+              echo "- Checksum changed: $LAST_CHECKSUM -> $RELEASE_CHECKSUM"
+              echo "- Or assets updated: $LAST_UPDATED_AT -> $ASSETS_UPDATED_AT"
+              echo "$RELEASE_CHECKSUM|$ASSETS_UPDATED_AT" > "$RELEASE_INFO_FILE"
               echo "new_release=true" >> $GITHUB_OUTPUT
             else
-              echo "No new release"
+              echo "No new release detected"
               echo "new_release=false" >> $GITHUB_OUTPUT
             fi
           fi
 
-      - name: Save updated tag to cache
+      - name: Save updated release info to cache
         if: ${{ steps.set-tag.outputs.new_release == 'true' }}
         uses: actions/cache/save@v4
         continue-on-error: true
         with:
           path: latest-release
-          key: php-binaries-last-tag-${{ github.repository }}
+          key: php-binaries-last-release-${{ github.repository }}
 
   run-build:
     needs: check-latest-release
