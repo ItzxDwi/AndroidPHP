@@ -40,13 +40,15 @@ jobs:
           
           # Get the most recent asset update time
           ASSETS_UPDATED_AT=$(echo "$API_JSON" | jq -r '[.assets[].updated_at] | max')
-          RELEASE_CHECKSUM=$(echo "$API_JSON" | jq -r '[.assets[].digest] | join(",") | sha256sum | cut -d" " -f1')
+          
+          # Create a unique fingerprint of the release assets
+          RELEASE_FINGERPRINT=$(echo "$API_JSON" | jq -r '.assets | map(.digest + .updated_at) | join(",")' | sha256sum | awk '{print $1}')
 
           echo "Release ID: $RELEASE_ID"
           echo "Release name: $RELEASE_NAME"
           echo "Published at: $PUBLISHED_AT"
           echo "Latest asset update: $ASSETS_UPDATED_AT"
-          echo "Assets checksum: $RELEASE_CHECKSUM"
+          echo "Release fingerprint: $RELEASE_FINGERPRINT"
 
           # Extract PHP version from assets (more reliable than name)
           BASE_VERSION=$(echo "$API_JSON" | jq -r '.assets[0].name' | grep -oE 'PHP-[0-9]+\.[0-9]+' | head -1 | cut -d'-' -f2 || echo "8.2")
@@ -62,18 +64,18 @@ jobs:
           
           if [ ! -f "$RELEASE_INFO_FILE" ]; then
             echo "First run or no cache found"
-            echo "$RELEASE_CHECKSUM|$ASSETS_UPDATED_AT" > "$RELEASE_INFO_FILE"
+            echo "$RELEASE_FINGERPRINT|$ASSETS_UPDATED_AT" > "$RELEASE_INFO_FILE"
             echo "new_release=true" >> $GITHUB_OUTPUT
           else
             LAST_INFO=$(cat "$RELEASE_INFO_FILE")
-            LAST_CHECKSUM=$(echo "$LAST_INFO" | cut -d'|' -f1)
+            LAST_FINGERPRINT=$(echo "$LAST_INFO" | cut -d'|' -f1)
             LAST_UPDATED_AT=$(echo "$LAST_INFO" | cut -d'|' -f2)
             
-            if [ "$RELEASE_CHECKSUM" != "$LAST_CHECKSUM" ] || [ "$ASSETS_UPDATED_AT" != "$LAST_UPDATED_AT" ]; then
+            if [ "$RELEASE_FINGERPRINT" != "$LAST_FINGERPRINT" ] || [ "$ASSETS_UPDATED_AT" != "$LAST_UPDATED_AT" ]; then
               echo "New release detected:"
-              echo "- Checksum changed: $LAST_CHECKSUM -> $RELEASE_CHECKSUM"
+              echo "- Fingerprint changed: $LAST_FINGERPRINT -> $RELEASE_FINGERPRINT"
               echo "- Or assets updated: $LAST_UPDATED_AT -> $ASSETS_UPDATED_AT"
-              echo "$RELEASE_CHECKSUM|$ASSETS_UPDATED_AT" > "$RELEASE_INFO_FILE"
+              echo "$RELEASE_FINGERPRINT|$ASSETS_UPDATED_AT" > "$RELEASE_INFO_FILE"
               echo "new_release=true" >> $GITHUB_OUTPUT
             else
               echo "No new release detected"
