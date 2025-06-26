@@ -67,6 +67,7 @@ jobs:
       - name: Save updated tag to cache
         if: ${{ steps.set-tag.outputs.new_release == 'true' }}
         uses: actions/cache/save@v4
+        continue-on-error: true
         with:
           path: latest-release
           key: php-binaries-last-tag-${{ github.repository }}
