@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       tagname:
-        description: 'Tag name for release (e.g., pm5-php-8.3-latest)'
+        description: 'Tag name for release (e.g., pm5-php-69.420)'
         required: true
-        default: 'pm5-php-8.3-latest'
+        default: 'pm5-php-69.420'
       base_version:
-        description: 'Base PHP version (e.g., 8.3)'
+        description: 'Base PHP version (e.g., 69.420)'
         required: true
-        default: '8.3'
+        default: '69.420'
       commithash:
         description: 'Specific commit hash from pmmp/php-build-scripts'
         required: true
