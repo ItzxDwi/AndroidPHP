@@ -113,9 +113,9 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Get current date
+      - name: Get formatted date
         id: date
-        run: echo "date=$(date -u +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+        run: echo "date=$(date -u +'%d %b %Y at %H:%M:%S %Z')" >> $GITHUB_OUTPUT
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -139,12 +139,13 @@ jobs:
           name: "${{ inputs.tagname }} (aarch64)"
           body: |
             Pre-built PHP binary for Android ARM64 devices
-            
+
+            Last updated on **${{ steps.date.outputs.date }}**
+
             ### Version Information
             - PHP Version: ${{ inputs.base_version }}
             - Target: android-aarch64
-            - Build Date: ${{ steps.date.outputs.date }}
-            
+
             ### Compatibility
             - Designed for PMMP 5
             - Requires Android 64 bit
