@@ -39,6 +39,9 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build PHP for Android (aarch64)
@@ -107,8 +110,6 @@ jobs:
     needs: build
     if: ${{ inputs.createRelease == 'yes' }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     timeout-minutes: 15
 
     steps:
