@@ -155,4 +155,3 @@ jobs:
             release-files/checksums.*
           draft: false
           prerelease: ${{ contains(inputs.tagname, 'rc') || contains(inputs.tagname, 'beta') }}
-          update: true
