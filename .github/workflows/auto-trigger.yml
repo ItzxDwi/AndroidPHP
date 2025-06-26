@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   check-latest-release:
@@ -20,40 +20,57 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get latest release info
+      - name: Restore last tag from cache
+        id: cache-restore
+        uses: actions/cache@v4
+        with:
+          path: latest-release
+          key: php-binaries-last-tag-${{ github.repository }}
+          restore-keys: |
+            php-binaries-last-tag-${{ github.repository }}
+
+      - name: Get latest release info and compare
         id: set-tag
         run: |
           # Get the actual latest release
           API_JSON=$(curl -s https://api.github.com/repos/pmmp/PHP-Binaries/releases/latest)
           LATEST_TAG=$(echo "$API_JSON" | jq -r .tag_name)
           echo "Latest release tag: $LATEST_TAG"
-          
-          # Extract base version (e.g., "8.3" from "pm5-php-8.3-latest")
+
+          # Extract base version
           BASE_VERSION=$(echo "$LATEST_TAG" | grep -oE '[0-9]+\.[0-9]+')
           echo "Base PHP version: $BASE_VERSION"
-          
-          # Store outputs
+
+          # Output to GitHub
           echo "tag_name=$LATEST_TAG" >> $GITHUB_OUTPUT
           echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
 
-          # Check previous tag
+          # Compare with cached tag
           mkdir -p latest-release
-          if [ ! -f latest-release/.last-tag ]; then
-            echo "First run - saving tag"
-            echo "$LATEST_TAG" > latest-release/.last-tag
+          TAG_FILE="latest-release/.last-tag"
+          if [ ! -f "$TAG_FILE" ]; then
+            echo "First run or no cache found"
+            echo "$LATEST_TAG" > "$TAG_FILE"
             echo "new_release=true" >> $GITHUB_OUTPUT
           else
-            LAST_TAG=$(cat latest-release/.last-tag)
+            LAST_TAG=$(cat "$TAG_FILE")
             if [ "$LATEST_TAG" != "$LAST_TAG" ]; then
               echo "New release detected (old: $LAST_TAG, new: $LATEST_TAG)"
-              echo "$LATEST_TAG" > latest-release/.last-tag
+              echo "$LATEST_TAG" > "$TAG_FILE"
               echo "new_release=true" >> $GITHUB_OUTPUT
             else
               echo "No new release"
               echo "new_release=false" >> $GITHUB_OUTPUT
             fi
           fi
-  
+
+      - name: Save updated tag to cache
+        if: ${{ steps.set-tag.outputs.new_release == 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: latest-release
+          key: php-binaries-last-tag-${{ github.repository }}
+
   run-build:
     needs: check-latest-release
     if: ${{ needs.check-latest-release.outputs.new_release == 'true' }}
