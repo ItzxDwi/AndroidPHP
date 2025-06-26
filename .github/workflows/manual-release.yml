@@ -53,30 +53,16 @@ jobs:
         run: |
           mkdir -p {aarch64-linux-musl,output}
 
-      - name: Cache toolchain
-        id: cache-toolchain
-        uses: actions/cache@v4
-        with:
-          path: aarch64-linux-musl
-          key: ${{ runner.os }}-toolchain-v1
-          restore-keys: |
-            ${{ runner.os }}-toolchain-
-
       - name: Setup toolchain
         working-directory: aarch64-linux-musl
         run: |
-          if [ -f 'bin/aarch64-linux-musl-gcc' ]; then
-            echo "Toolchain found in cache"
-          else
-            echo "Downloading toolchain..."
-            if ! curl -sSLf -o toolchain.tar.xz "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz"; then
-              echo "::error::Failed to download toolchain"
-              exit 1
-            fi
-            tar -xf toolchain.tar.xz --strip-components=1
-            rm toolchain.tar.xz
+          if ! curl -sSLf -o toolchain.tar.xz "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz"; then
+            echo "::error::Failed to download toolchain"
+            exit 1
           fi
+          tar -xf toolchain.tar.xz --strip-components=1
           echo "$(pwd)/bin" >> $GITHUB_PATH
+          rm toolchain.tar.xz
 
       - name: Checkout php-build-scripts
         uses: actions/checkout@v4
@@ -92,17 +78,6 @@ jobs:
         run: |
           git fetch --depth=1 origin ${{ inputs.commithash }}
           git checkout ${{ inputs.commithash }}
-
-      - name: Cache build dependencies
-        id: cache-apt
-        uses: actions/cache@v4
-        with:
-          path: |
-            /var/cache/apt
-            /var/lib/apt
-          key: ${{ runner.os }}-apt-${{ hashFiles('.github/workflows/manual-release.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-apt-
 
       - name: Install build dependencies
         run: |
