@@ -116,7 +116,7 @@ jobs:
           sha256sum php php.ini *.zip *.gz > checksums.sha256
 
       - name: Publish release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tagname }}
           name: "${{ inputs.tagname }} (aarch64)"
@@ -133,5 +133,6 @@ jobs:
             - Designed for PMMP 5
             - Requires Android 64 bit
           files: release/*
+          target_commitish: ${{ github.sha }}
           draft: false
           prerelease: ${{ contains(inputs.tagname, 'rc') || contains(inputs.tagname, 'beta') }}
