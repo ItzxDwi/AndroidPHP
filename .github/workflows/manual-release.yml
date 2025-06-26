@@ -1,0 +1,152 @@
+name: Build PHP Binaries
+
+on:
+  workflow_dispatch:
+    inputs:
+      tagname:
+        description: 'Tag name for release (e.g., 8.1.999)'
+        required: true
+        default: '8.3.999'
+      commithash:
+        description: 'Specific commit hash from pmmp/php-build-scripts'
+        required: true
+        default: 'none'
+      createRelease:
+        description: 'Publish GitHub release?'
+        required: true
+        default: 'yes'
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
+
+  workflow_call:
+    inputs:
+      tagname:
+        required: true
+        type: string
+      commithash:
+        required: true
+        type: string
+      createRelease:
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build PHP for Android (aarch64)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Initialize workspace
+        run: |
+          mkdir -p {aarch64-linux-musl,output}
+
+      - name: Setup toolchain
+        working-directory: aarch64-linux-musl
+        run: |
+          if ! curl -sSLf -o toolchain.tar.xz "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz"; then
+            echo "::error::Failed to download toolchain"
+            exit 1
+          fi
+          tar -xf toolchain.tar.xz --strip-components=1
+          echo "$(pwd)/bin" >> $GITHUB_PATH
+          rm toolchain.tar.xz
+
+      - name: Checkout php-build-scripts
+        uses: actions/checkout@v4
+        with:
+          repository: pmmp/php-build-scripts
+          path: php-build-scripts
+          ref: stable
+          fetch-depth: 0
+
+      - name: Checkout specific commit (if provided)
+        if: ${{ inputs.commithash != 'none' }}
+        working-directory: php-build-scripts
+        run: |
+          git fetch --depth=1 origin ${{ inputs.commithash }}
+          git checkout ${{ inputs.commithash }}
+
+      - name: Apply build patches
+        working-directory: php-build-scripts
+        run: |
+          sed -i 's/LIBZIP_VERSION=".*"/LIBZIP_VERSION="1.9.2"/' compile.sh
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            re2c libtool libtool-bin \
+            zlib1g-dev libcurl4-openssl-dev \
+            libxml2-dev libyaml-dev libgmp-dev \
+            libzip-dev libssl-dev
+
+      - name: Build PHP
+        working-directory: php-build-scripts
+        run: |
+          ./compile.sh -t android-aarch64 -x -j$(nproc) -g -P5
+          [ -f bin/php7/bin/php ] || exit 1
+
+      - name: Prepare artifacts
+        run: |
+          cp php-build-scripts/bin/php7/bin/{php,php.ini} output/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-php-build
+          path: output/*
+          retention-days: 1
+
+  release:
+    name: Create Release
+    needs: build
+    if: ${{ inputs.createRelease == 'yes' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "date=$(date -u +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-php-build
+          path: release-files
+
+      - name: Package release
+        working-directory: release-files
+        run: |
+          zip -9 php-android-${{ inputs.tagname }}.zip php php.ini
+          tar -czf php-android-${{ inputs.tagname }}.tar.gz php php.ini
+          
+          sha256sum php php.ini *.zip *.gz > checksums.sha256
+          md5sum php php.ini *.zip *.gz > checksums.md5
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ inputs.tagname }}
+          name: "Android PHP ${{ inputs.tagname }} (aarch64)"
+          body: |
+            Pre-built PHP binary for Android ARM64 devices
+            
+            ### Version Information
+            - PHP Version: ${{ inputs.tagname }}
+            - Target: android-aarch64
+            - Build Date: ${{ steps.date.outputs.date }}
+            
+            ### Compatibility
+            - Designed for PMMP 5
+            - Requires Android 64 bit
+          files: |
+            release-files/php
+            release-files/php.ini
+            release-files/php-android-${{ inputs.tagname }}.*
+            release-files/checksums.*
+          draft: false
+          prerelease: ${{ contains(inputs.tagname, 'rc') || contains(inputs.tagname, 'beta') }}
