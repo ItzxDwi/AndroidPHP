@@ -60,7 +60,7 @@ jobs:
             echo "::error::Failed to download toolchain"
             exit 1
           fi
-          tar -xf toolchain.tar.xz --strip-components=1
+          tar -xf toolchain.tar.xz
           echo "$(pwd)/bin" >> $GITHUB_PATH
           rm toolchain.tar.xz
 
