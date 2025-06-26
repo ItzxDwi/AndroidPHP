@@ -50,7 +50,7 @@ bash start.sh
 ## ❓ FAQ (Frequently Asked Questions)
 
 ### Q: Can I run this on any Android device?
-**A:** Yes — as long as your device is 64-bit and you're using Termux from F-Droid.
+**A:** Yes, as long as your device is 64-bit and you're using Termux from F-Droid.
 
 ### Q: How do I update the PHP binary?
 ```bash
@@ -70,11 +70,11 @@ curl -L -O https://github.com/pmmp/PocketMine-MP/releases/latest/download/Pocket
 ## 🛠 Common Troubleshooting
 
 ### ❌ Error: `has unexpected e_type: 2`
-You're likely using **Google Play Termux**, which doesn't support native binaries.
+You're likely using **Termux from the Google Play Store**, which doesn't support running native binaries.
 
 ✅ **Fix**:  Uninstall Termux and reinstall from [F-Droid](https://f-droid.org/en/packages/com.termux/) or [GitHub](https://github.com/termux/termux-app)
 
-👉 More info:  [Reddit Thread](https://www.reddit.com/r/termux/comments/1e05wjf/tried_to_execute_arm_assembly_on_s10/)
+👉 More info:  [Reddit thread](https://www.reddit.com/r/termux/comments/1e05wjf/tried_to_execute_arm_assembly_on_s10/)
 
 ### ❌ `Permission denied` when running `php` or `start.sh`
 ✅ Fix:
