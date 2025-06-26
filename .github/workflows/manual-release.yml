@@ -4,9 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       tagname:
-        description: 'Tag name for release (e.g., 69.420)'
+        description: 'Tag name for release (e.g., pm5-php-8.3-latest)'
         required: true
-        default: '69.420'
+        default: 'pm5-php-8.3-latest'
+      base_version:
+        description: 'Base PHP version (e.g., 8.3)'
+        required: true
+        default: '8.3'
       commithash:
         description: 'Specific commit hash from pmmp/php-build-scripts'
         required: true
@@ -23,6 +27,9 @@ on:
   workflow_call:
     inputs:
       tagname:
+        required: true
+        type: string
+      base_version:
         required: true
         type: string
       commithash:
@@ -69,11 +76,6 @@ jobs:
           git fetch --depth=1 origin ${{ inputs.commithash }}
           git checkout ${{ inputs.commithash }}
 
-      - name: Apply build patches
-        working-directory: php-build-scripts
-        run: |
-          sed -i 's/LIBZIP_VERSION=".*"/LIBZIP_VERSION="1.9.2"/' compile.sh
-
       - name: Install build dependencies
         run: |
           sudo apt-get update -qq
@@ -86,7 +88,7 @@ jobs:
       - name: Build PHP
         working-directory: php-build-scripts
         run: |
-          ./compile.sh -t android-aarch64 -x -j$(nproc) -g -P5
+          ./compile.sh -t android-aarch64 -x -j$(nproc) -z ${{ inputs.base_version }} -g -P5
           [ -f bin/php7/bin/php ] || exit 1
 
       - name: Prepare artifacts
@@ -133,12 +135,12 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ inputs.tagname }}
-          name: "Android PHP ${{ inputs.tagname }} (aarch64)"
+          name: "${{ inputs.tagname }} (aarch64)"
           body: |
             Pre-built PHP binary for Android ARM64 devices
             
             ### Version Information
-            - PHP Version: ${{ inputs.tagname }}
+            - PHP Version: ${{ inputs.base_version }}
             - Target: android-aarch64
             - Build Date: ${{ steps.date.outputs.date }}
             
@@ -152,3 +154,4 @@ jobs:
             release-files/checksums.*
           draft: false
           prerelease: ${{ contains(inputs.tagname, 'rc') || contains(inputs.tagname, 'beta') }}
+          update: true
