@@ -16,9 +16,9 @@ Run [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) directly on your **An
 
 ## 🚀 Installation
 
-### 1. Install Termux and wget
+### 1. Install Termux and curl
 ```bash
-pkg install wget
+pkg install curl
 ```
 
 ### 2. Create your server folder
@@ -29,15 +29,15 @@ cd ~/server/bin/php7/bin
 
 ### 3. Download the PHP binary
 ```bash
-wget https://github.com/ItzxDwi/AndroidPHP/releases/latest/download/php
+curl -L -O https://github.com/ItzxDwi/AndroidPHP/releases/latest/download/php
 chmod +x php
 ```
 
 ### 4. Download PocketMine-MP
 ```bash
 cd ~/server
-wget https://github.com/pmmp/PocketMine-MP/releases/latest/download/PocketMine-MP.phar
-wget https://github.com/pmmp/PocketMine-MP/releases/latest/download/start.sh
+curl -L -O https://github.com/pmmp/PocketMine-MP/releases/latest/download/PocketMine-MP.phar
+curl -L -O https://github.com/pmmp/PocketMine-MP/releases/latest/download/start.sh
 chmod +x start.sh
 ```
 
@@ -56,7 +56,7 @@ bash start.sh
 ```bash
 cd ~/server/bin/php7/bin
 rm php
-wget https://github.com/ItzxDwi/AndroidPHP/releases/latest/download/php
+curl -L -O https://github.com/ItzxDwi/AndroidPHP/releases/latest/download/php
 chmod +x php
 ```
 
@@ -64,7 +64,7 @@ chmod +x php
 ```bash
 cd ~/server
 rm PocketMine-MP.phar
-wget https://github.com/pmmp/PocketMine-MP/releases/latest/download/PocketMine-MP.phar
+curl -L -O https://github.com/pmmp/PocketMine-MP/releases/latest/download/PocketMine-MP.phar
 ```
 
 ## 🛠 Common Troubleshooting
