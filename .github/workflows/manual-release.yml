@@ -4,25 +4,23 @@ on:
   workflow_dispatch:
     inputs:
       tagname:
-        description: 'Tag name for release (e.g., pm5-php-69.420)'
+        description: 'Tag name for release (e.g., pm5-php-8.3)'
         required: true
-        default: 'pm5-php-69.420'
+        default: 'pm5-php-8.3'
       base_version:
-        description: 'Base PHP version (e.g., 69.420)'
+        description: 'Base PHP version (e.g., 8.3)'
         required: true
-        default: '69.420'
+        default: '8.3'
       commithash:
         description: 'Specific commit hash from pmmp/php-build-scripts'
-        required: true
-        default: 'none'
+        required: false
+        default: 'stable'
       createRelease:
         description: 'Publish GitHub release?'
         required: true
         default: 'yes'
         type: choice
-        options:
-          - 'yes'
-          - 'no'
+        options: ['yes', 'no']
 
   workflow_call:
     inputs:
@@ -33,8 +31,9 @@ on:
         required: true
         type: string
       commithash:
-        required: true
+        required: false
         type: string
+        default: 'stable'
       createRelease:
         required: true
         type: string
@@ -49,54 +48,40 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - name: Init directories 
-        run: |
-          mkdir -p {aarch64-linux-musl,output}
+      - name: Init directories
+        run: mkdir -p {aarch64-linux-musl,output}
 
-      - name: Setup toolchain
+      - name: Install toolchain
         working-directory: aarch64-linux-musl
         run: |
-          if ! curl -sSLf -o toolchain.tar.xz "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz"; then
-            echo "::error::Failed to download toolchain"
-            exit 1
-          fi
-          tar -xf toolchain.tar.xz
+          curl -sSLf -o toolchain.tar.xz "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz" || exit 1
+          tar -xf toolchain.tar.xz && rm toolchain.tar.xz
           echo "$(pwd)/bin" >> $GITHUB_PATH
-          rm toolchain.tar.xz
 
       - name: Checkout php-build-scripts
         uses: actions/checkout@v4
         with:
           repository: pmmp/php-build-scripts
           path: php-build-scripts
-          ref: stable
-          fetch-depth: 0
+          ref: ${{ inputs.commithash }}
 
-      - name: Checkout specific commit (if provided)
-        if: ${{ inputs.commithash != 'none' }}
-        working-directory: php-build-scripts
-        run: |
-          git fetch --depth=1 origin ${{ inputs.commithash }}
-          git checkout ${{ inputs.commithash }}
-
-      - name: Install build dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            re2c libtool libtool-bin \
-            zlib1g-dev libcurl4-openssl-dev \
-            libxml2-dev libyaml-dev libgmp-dev \
-            libzip-dev libssl-dev
+            re2c libtool libtool-bin zlib1g-dev \
+            libcurl4-openssl-dev libxml2-dev \
+            libyaml-dev libgmp-dev libzip-dev libssl-dev
 
-      - name: Build PHP
+      - name: Compile PHP
         working-directory: php-build-scripts
         run: |
-          ./compile.sh -t android-aarch64 -x -j$(nproc) -z ${{ inputs.base_version }} -g -P5
+          ./compile.sh -t android-aarch64 -x -j$(nproc) \
+            -z ${{ inputs.base_version }} -g -P5
           [ -f bin/php7/bin/php ] || exit 1
 
       - name: Prepare artifacts
-        run: |
-          cp php-build-scripts/bin/php7/bin/{php,php.ini} output/
+        run: cp php-build-scripts/bin/php7/bin/{php,php.ini} output/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -113,7 +98,7 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Get formatted date
+      - name: Get current date
         id: date
         run: echo "date=$(date -u +'%d %b %Y at %H:%M:%S %Z')" >> $GITHUB_OUTPUT
 
@@ -121,18 +106,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: android-php-build
-          path: release-files
+          path: release
 
-      - name: Package release
-        working-directory: release-files
+      - name: Package files
+        working-directory: release
         run: |
           zip -9 php-android-${{ inputs.tagname }}.zip php php.ini
           tar -czf php-android-${{ inputs.tagname }}.tar.gz php php.ini
-          
           sha256sum php php.ini *.zip *.gz > checksums.sha256
-          md5sum php php.ini *.zip *.gz > checksums.md5
 
-      - name: Create GitHub Release
+      - name: Publish release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ inputs.tagname }}
@@ -149,10 +132,6 @@ jobs:
             ### Compatibility
             - Designed for PMMP 5
             - Requires Android 64 bit
-          files: |
-            release-files/php
-            release-files/php.ini
-            release-files/php-android-${{ inputs.tagname }}.*
-            release-files/checksums.*
+          files: release/*
           draft: false
           prerelease: ${{ contains(inputs.tagname, 'rc') || contains(inputs.tagname, 'beta') }}
