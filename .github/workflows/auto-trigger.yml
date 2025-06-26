@@ -1,0 +1,52 @@
+name: Auto Trigger on PHP-Binaries Release
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'  # Every 12 hours
+  workflow_dispatch:
+
+jobs:
+  check-latest-release:
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.set-tag.outputs.tag_name }}
+      new_release: ${{ steps.set-tag.outputs.new_release }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get latest release tag from pmmp/PHP-Binaries
+        id: set-tag
+        run: |
+          LATEST=$(curl -s https://api.github.com/repos/pmmp/PHP-Binaries/releases/latest | jq -r .tag_name)
+          echo "Latest release: $LATEST"
+
+          mkdir -p latest-release
+
+          if [ ! -f latest-release/.last-tag ]; then
+            echo "First run or no previous tag. Saving tag."
+            echo "$LATEST" > latest-release/.last-tag
+            echo "new_release=true" >> $GITHUB_OUTPUT
+          else
+            LAST=$(cat latest-release/.last-tag)
+            if [ "$LATEST" != "$LAST" ]; then
+              echo "New release found: $LATEST (previous: $LAST)"
+              echo "$LATEST" > latest-release/.last-tag
+              echo "new_release=true" >> $GITHUB_OUTPUT
+            else
+              echo "No new release. Current version: $LAST"
+              echo "new_release=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+          echo "tag_name=$LATEST" >> $GITHUB_OUTPUT
+  
+  run-build:
+    needs: check-latest-release
+    if: ${{ needs.check-latest-release.outputs.new_release == 'true' }}
+    uses: ./.github/workflows/manual-release.yml
+    with:
+      tagname: ${{ needs.check-latest-release.outputs.tag_name }}
+      commithash: "none"
+      createRelease: "yes"
+    secrets: inherit
