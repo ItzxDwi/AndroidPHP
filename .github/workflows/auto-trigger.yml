@@ -25,9 +25,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: latest-release
-          key: php-binaries-last-release-${{ github.repository }}
+          key: php-binaries-last-release-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            php-binaries-last-release-${{ github.repository }}
+            php-binaries-last-release-
 
       - name: Get latest release info and compare
         id: set-tag
@@ -50,8 +50,18 @@ jobs:
           echo "Latest asset update: $ASSETS_UPDATED_AT"
           echo "Release fingerprint: $RELEASE_FINGERPRINT"
 
-          # Extract PHP version from assets (more reliable than name)
-          BASE_VERSION=$(echo "$API_JSON" | jq -r '.assets[0].name' | grep -oE 'PHP-[0-9]+\.[0-9]+' | head -1 | cut -d'-' -f2 || echo "8.2")
+          # Extract PHP version from asset names only
+          echo "Extracting PHP version from asset names..."
+          BASE_VERSION=$(echo "$API_JSON" | jq -r '.assets[] | .name' | grep -oE 'PHP-[0-9]+\.[0-9]+' | head -1 | cut -d'-' -f2)
+
+          # Validate we got a version
+          if [ -z "$BASE_VERSION" ] || ! echo "$BASE_VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
+              echo "ERROR: Could not extract PHP version from asset names"
+              echo "Available asset names:"
+              echo "$API_JSON" | jq -r '.assets[] | .name'
+              exit 1
+          fi
+
           echo "Base PHP version: $BASE_VERSION"
 
           # Output to GitHub
@@ -89,7 +99,7 @@ jobs:
         continue-on-error: true
         with:
           path: latest-release
-          key: php-binaries-last-release-${{ github.repository }}
+          key: php-binaries-last-release-${{ github.run_id }}-${{ github.run_attempt }}
 
   run-build:
     needs: check-latest-release
