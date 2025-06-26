@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       tagname:
-        description: 'Tag name for release (e.g., 8.1.999)'
+        description: 'Tag name for release (e.g., 69.420)'
         required: true
-        default: '8.3.999'
+        default: '69.420'
       commithash:
         description: 'Specific commit hash from pmmp/php-build-scripts'
         required: true
