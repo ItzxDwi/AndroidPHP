@@ -1,6 +1,6 @@
 # 🐘 PHP Binaries for PocketMine-MP on Android
 
-Run [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) directly on your **Android device** using this custom-built PHP binary.  
+Run [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) directly on your **Android device** using this pre-built PHP binary.  
 - ✅ Works in **Termux**  
 - ♻️ Auto-updated **every 12 hours**  
 - 🛠 Built for **ARM64 devices**
