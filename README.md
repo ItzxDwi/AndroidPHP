@@ -2,7 +2,7 @@
 
 Run [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) directly on your **Android device** using this pre-built PHP binary.  
 - ✅ Works in **Termux**  
-- ♻️ Auto-updated **every 12 hours**  
+- ♻️ Auto-updated **every 48 hours**  
 - 🛠 Built for **ARM64 devices**
 
 
