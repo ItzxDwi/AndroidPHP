@@ -1,4 +1,4 @@
-name: Auto Trigger on PHP-Binaries Release
+name: Auto trigger release
 
 on:
   schedule:
@@ -44,7 +44,7 @@ jobs:
             exit 1
           fi
 
-          # Check against cache
+          # Check cache
           if [ -f ".release-cache/last-fingerprint" ]; then
             LAST_FINGERPRINT=$(cat ".release-cache/last-fingerprint")
             if [ "$CURRENT_FINGERPRINT" = "$LAST_FINGERPRINT" ]; then
@@ -64,6 +64,7 @@ jobs:
       - name: Update cache
         if: ${{ steps.check-release.outputs.new_release == 'true' }}
         uses: actions/cache/save@v4
+        continue-on-error: true
         with:
           path: .release-cache
           key: php-binaries-cache-${{ github.run_id }}-${{ github.run_attempt }}
@@ -75,5 +76,5 @@ jobs:
     with:
       tagname: ${{ needs.check-latest-release.outputs.tag_name }}
       base_version: ${{ needs.check-latest-release.outputs.base_version }}
-      createRelease: "no"
+      createRelease: "yes"
     secrets: inherit
