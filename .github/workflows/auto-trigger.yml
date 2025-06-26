@@ -10,36 +10,46 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag_name: ${{ steps.set-tag.outputs.tag_name }}
+      base_version: ${{ steps.set-tag.outputs.base_version }}
       new_release: ${{ steps.set-tag.outputs.new_release }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get latest release tag from pmmp/PHP-Binaries
+      - name: Get latest release info
         id: set-tag
         run: |
-          LATEST=$(curl -s https://api.github.com/repos/pmmp/PHP-Binaries/releases/latest | jq -r .tag_name)
-          echo "Latest release: $LATEST"
+          # Get the actual latest release
+          API_JSON=$(curl -s https://api.github.com/repos/pmmp/PHP-Binaries/releases/latest)
+          LATEST_TAG=$(echo "$API_JSON" | jq -r .tag_name)
+          echo "Latest release tag: $LATEST_TAG"
+          
+          # Extract base version (e.g., "8.3" from "pm5-php-8.3-latest")
+          BASE_VERSION=$(echo "$LATEST_TAG" | grep -oE '[0-9]+\.[0-9]+')
+          echo "Base PHP version: $BASE_VERSION"
+          
+          # Store outputs
+          echo "tag_name=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
 
+          # Check previous tag
           mkdir -p latest-release
-
           if [ ! -f latest-release/.last-tag ]; then
-            echo "First run or no previous tag. Saving tag."
-            echo "$LATEST" > latest-release/.last-tag
+            echo "First run - saving tag"
+            echo "$LATEST_TAG" > latest-release/.last-tag
             echo "new_release=true" >> $GITHUB_OUTPUT
           else
-            LAST=$(cat latest-release/.last-tag)
-            if [ "$LATEST" != "$LAST" ]; then
-              echo "New release found: $LATEST (previous: $LAST)"
-              echo "$LATEST" > latest-release/.last-tag
+            LAST_TAG=$(cat latest-release/.last-tag)
+            if [ "$LATEST_TAG" != "$LAST_TAG" ]; then
+              echo "New release detected (old: $LAST_TAG, new: $LATEST_TAG)"
+              echo "$LATEST_TAG" > latest-release/.last-tag
               echo "new_release=true" >> $GITHUB_OUTPUT
             else
-              echo "No new release. Current version: $LAST"
+              echo "No new release"
               echo "new_release=false" >> $GITHUB_OUTPUT
             fi
           fi
-          echo "tag_name=$LATEST" >> $GITHUB_OUTPUT
   
   run-build:
     needs: check-latest-release
@@ -47,6 +57,7 @@ jobs:
     uses: ./.github/workflows/manual-release.yml
     with:
       tagname: ${{ needs.check-latest-release.outputs.tag_name }}
+      base_version: ${{ needs.check-latest-release.outputs.base_version }}
       commithash: "none"
       createRelease: "yes"
     secrets: inherit
