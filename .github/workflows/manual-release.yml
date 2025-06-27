@@ -7,8 +7,8 @@ on:
         description: 'Tag name for release (e.g., pm5-php-8.3)'
         required: true
         default: 'pm5-php-8.3'
-      base_version:
-        description: 'Base PHP version (e.g., 8.3)'
+      php_version:
+        description: 'PHP version (e.g., 8.3)'
         required: true
         default: '8.3'
       commithash:
@@ -27,7 +27,7 @@ on:
       tagname:
         required: true
         type: string
-      base_version:
+      php_version:
         required: true
         type: string
       commithash:
@@ -77,7 +77,7 @@ jobs:
       - name: Compile PHP
         working-directory: php-build-scripts
         run: |
-          ./compile.sh -t android-aarch64 -x -j$(nproc) -z ${{ inputs.base_version }} -g -P5
+          ./compile.sh -t android-aarch64 -x -j$(nproc) -z ${{ inputs.php_version }} -g -P5
           [ -f bin/php7/bin/php ] || exit 1
 
       - name: Prepare artifacts
@@ -126,7 +126,7 @@ jobs:
             Last updated on **${{ steps.date.outputs.date }}**
 
             ### Version Information
-            - PHP Version: ${{ inputs.base_version }}
+            - PHP Version: ${{ inputs.php_version }}
             - Target: android-aarch64
 
             ### Compatibility
