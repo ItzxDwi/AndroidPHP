@@ -37,7 +37,7 @@ jobs:
           CURRENT_FINGERPRINT=$(echo "$API_JSON" | jq -r '.assets | map(.digest + .updated_at) | join(",")' | sha256sum | awk '{print $1}')
 
           # Extract PHP version
-          PHP_VERSION=$(echo "$API_JSON" | jq -r '.assets[0].name' | grep -oE 'PHP-[0-9]+\.[0-9]+' | head -1 | cut -d'-' -f2)
+          PHP_VERSION=$(echo "$API_JSON" | jq -r '.assets[0].name' | grep -oP 'PHP-\K[0-9]+\.[0-9]+')
           if [ -z "$PHP_VERSION" ]; then
             echo "ERROR: Could not extract PHP version"
             exit 1
