@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag_name: ${{ steps.check-release.outputs.tag_name }}
-      base_version: ${{ steps.check-release.outputs.base_version }}
+      php_version: ${{ steps.check-release.outputs.php_version }}
       new_release: ${{ steps.check-release.outputs.new_release }}
 
     steps:
@@ -34,12 +34,11 @@ jobs:
         run: |
           # Get latest release info
           API_JSON=$(curl -s https://api.github.com/repos/pmmp/PHP-Binaries/releases/tags/pm5-latest)
-          ASSETS_UPDATED_AT=$(echo "$API_JSON" | jq -r '[.assets[].updated_at] | max')
           CURRENT_FINGERPRINT=$(echo "$API_JSON" | jq -r '.assets | map(.digest + .updated_at) | join(",")' | sha256sum | awk '{print $1}')
 
           # Extract PHP version
-          BASE_VERSION=$(echo "$API_JSON" | jq -r '.assets[0].name' | grep -oE 'PHP-[0-9]+\.[0-9]+' | head -1 | cut -d'-' -f2)
-          if [ -z "$BASE_VERSION" ]; then
+          PHP_VERSION=$(echo "$API_JSON" | jq -r '.assets[0].name' | grep -oE 'PHP-[0-9]+\.[0-9]+' | head -1 | cut -d'-' -f2)
+          if [ -z "$PHP_VERSION" ]; then
             echo "ERROR: Could not extract PHP version"
             exit 1
           fi
@@ -58,7 +57,7 @@ jobs:
           mkdir -p .release-cache
           echo "$CURRENT_FINGERPRINT" > ".release-cache/last-fingerprint"
           echo "tag_name=pm5-latest" >> $GITHUB_OUTPUT
-          echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
+          echo "php_version=$PHP_VERSION" >> $GITHUB_OUTPUT
           echo "new_release=true" >> $GITHUB_OUTPUT
 
       - name: Update cache
@@ -75,6 +74,6 @@ jobs:
     uses: ./.github/workflows/manual-release.yml
     with:
       tagname: ${{ needs.check-latest-release.outputs.tag_name }}
-      base_version: ${{ needs.check-latest-release.outputs.base_version }}
+      php_version: ${{ needs.check-latest-release.outputs.php_version }}
       createRelease: "yes"
     secrets: inherit
