@@ -70,15 +70,16 @@ jobs:
             toolchain-
 
       - name: Install toolchain if not cached
+        if: ${{ steps.toolchain.outputs.cache-hit }}" != 'true'
         run: |
-          if [ "${{ steps.toolchain.outputs.cache-hit }}" != "true" ]; then
-           mkdir -p aarch64-linux-musl
-           cd aarch64-linux-musl
-           curl -sSLf -o toolchain.tar.xz "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz"
-           tar -xf toolchain.tar.xz
-           rm toolchain.tar.xz
-          fi
-          echo "$(pwd)/aarch64-linux-musl/bin" >> "$GITHUB_PATH"
+          mkdir -p aarch64-linux-musl
+          cd aarch64-linux-musl
+          curl -sSLf -o toolchain.tar.xz "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz"
+          tar -xf toolchain.tar.xz
+          rm toolchain.tar.xz
+
+      - name: Add toolchain to path
+        run: echo "${{ github.workspace }}/aarch64-linux-musl/bin" >> "$GITHUB_PATH"
 
       - name: Checkout php-build-scripts
         uses: actions/checkout@v4
