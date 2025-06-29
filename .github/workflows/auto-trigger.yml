@@ -25,7 +25,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .release-cache
-          key: php-binaries-cache-${{ github.run_id }}-${{ github.run_attempt }}
+          key: php-binaries-cache-${{ github.run_id }}
           restore-keys: |
             php-binaries-cache-
 
@@ -59,14 +59,6 @@ jobs:
           echo "tag_name=pm5-latest" >> $GITHUB_OUTPUT
           echo "php_version=$PHP_VERSION" >> $GITHUB_OUTPUT
           echo "new_release=true" >> $GITHUB_OUTPUT
-
-      - name: Update cache
-        if: ${{ steps.check-release.outputs.new_release == 'true' }}
-        uses: actions/cache/save@v4
-        continue-on-error: true
-        with:
-          path: .release-cache
-          key: php-binaries-cache-${{ github.run_id }}-${{ github.run_attempt }}
 
   run-build:
     needs: check-latest-release

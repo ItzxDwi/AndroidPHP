@@ -51,13 +51,34 @@ jobs:
       - name: Init directories
         run: mkdir -p {aarch64-linux-musl,output}
 
-      - name: Install toolchain
-        working-directory: aarch64-linux-musl
+      - name: Prepare compile.sh download cache
+        id: download-cache
+        uses: actions/cache@v4
+        with:
+          path: ./download_cache
+          key: compile-sh-cache-${{ github.run_id }}
+          restore-keys: |
+            compile-sh-cache-
+
+      - name: Cache toolchain
+        id: toolchain
+        uses: actions/cache@v4
+        with:
+          path: aarch64-linux-musl
+          key: toolchain-${{ github.run_id }}
+          restore-keys: |
+            toolchain-
+
+      - name: Install toolchain if not cached
         run: |
-          curl -sSLf -o toolchain.tar.xz "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz" || exit 1
-          tar -xf toolchain.tar.xz
-          echo "$(pwd)/bin" >> $GITHUB_PATH
-          rm toolchain.tar.xz
+          if [ "${{ steps.toolchain.outputs.cache-hit }}" != "true" ]; then
+           mkdir -p aarch64-linux-musl
+           cd aarch64-linux-musl
+           curl -sSLf -o toolchain.tar.xz "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz"
+           tar -xf toolchain.tar.xz
+           rm toolchain.tar.xz
+          fi
+          echo "$(pwd)/aarch64-linux-musl/bin" >> $GITHUB_PATH
 
       - name: Checkout php-build-scripts
         uses: actions/checkout@v4
@@ -77,7 +98,7 @@ jobs:
       - name: Compile PHP
         working-directory: php-build-scripts
         run: |
-          ./compile.sh -t android-aarch64 -x -j$(nproc) -z ${{ inputs.php_version }} -g -P5
+          ./compile.sh -t android-aarch64 -x -j$(nproc) -c ./download_cache -z ${{ inputs.php_version }} -g -P5
           [ -f bin/php7/bin/php ] || exit 1
 
       - name: Prepare artifacts
@@ -135,4 +156,4 @@ jobs:
           files: release/*
           target_commitish: ${{ github.sha }}
           draft: false
-          prerelease: ${{ contains(inputs.tagname, 'rc') || contains(inputs.tagname, 'beta') }}
+          prerelease: ${{ contains(inputs.tagname, 'preview') }}
