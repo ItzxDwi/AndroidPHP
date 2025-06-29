@@ -40,6 +40,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   build:
@@ -128,12 +129,22 @@ jobs:
           name: android-php-build
           path: release
 
-      - name: Pack files
+      - name: Pack files and generate checksums
         working-directory: release
         run: |
           zip -9 php-android-${{ inputs.tagname }}.zip php php.ini
           tar -czf php-android-${{ inputs.tagname }}.tar.gz php php.ini
           sha256sum php php.ini *.zip *.gz > checksums.sha256
+
+      - name: Sign checksums with Cosign
+        working-directory: release
+        run: |
+          curl -sSLf https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 -o cosign
+          chmod +x cosign
+          ./cosign sign-blob --yes \
+            --output-signature checksums.sig \
+            --output-certificate checksums.cert \
+            checksums.sha256
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
@@ -142,6 +153,7 @@ jobs:
           name: "${{ inputs.tagname }} (aarch64)"
           body: |
             Pre-built PHP binary for Android ARM64 devices
+            Built by: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             Last updated on **${{ steps.date.outputs.date }}**
 
@@ -149,10 +161,17 @@ jobs:
             - PHP Version: ${{ inputs.php_version }}
             - Target: android-aarch64
 
-            ### Compatibility
-            - Designed for PMMP 5
-            - Requires Android 64 bit
-          files: release/*
+            ### Verification
+            This release includes SHA256 hashes (`checksums.sha256`), a signature (`checksums.sig`), and a signing certificate (`checksums.cert`).
+
+            You can read the verification guide here:
+            [Verification Guide](https://github.com/ItzxDwi/AndroidPHP/blob/stable/VERIFICATION.md)
+
+          files: |
+            release/php
+            release/php.ini
+            release/php-android-${{ inputs.tagname }}.*
+            release/checksums.*
           target_commitish: ${{ github.sha }}
           draft: false
           prerelease: ${{ contains(inputs.tagname, 'preview') }}
