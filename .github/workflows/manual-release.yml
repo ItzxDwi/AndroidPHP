@@ -55,7 +55,7 @@ jobs:
         id: download-cache
         uses: actions/cache@v4
         with:
-          path: ./download_cache
+          path: ${{ github.workspace }}/download_cache
           key: compile-sh-cache-${{ github.run_id }}
           restore-keys: |
             compile-sh-cache-
@@ -70,7 +70,7 @@ jobs:
             toolchain-
 
       - name: Install toolchain if not cached
-        if: ${{ steps.toolchain.outputs.cache-hit }}" != 'true'
+        if: ${{ steps.toolchain.outputs.cache-hit != 'true' }}
         run: |
           mkdir -p aarch64-linux-musl
           cd aarch64-linux-musl
@@ -99,7 +99,7 @@ jobs:
       - name: Compile PHP
         working-directory: php-build-scripts
         run: |
-          ./compile.sh -t android-aarch64 -x -j$(nproc) -c ./download_cache -z ${{ inputs.php_version }} -g -P5
+          ./compile.sh -t android-aarch64 -x -j$(nproc) -c ${{ github.workspace }}/download_cache -z ${{ inputs.php_version }} -g -P5
           [ -f bin/php7/bin/php ] || exit 1
 
       - name: Prepare artifacts
