@@ -97,7 +97,7 @@ jobs:
       - name: Compile PHP
         working-directory: php-build-scripts
         run: |
-          ./compile.sh -t android-aarch64 -x -j$(nproc) -c ${{ github.workspace }}/download_cache -z ${{ inputs.php_version }} -g -P5
+          ./compile.sh -t android-aarch64 -x -j$(nproc) -c ${{ github.workspace }}/download_cache -z ${{ inputs.php_version }} -D -g -P5
           [ -f bin/php7/bin/php ] || exit 1
 
       - name: Prepare artifacts
