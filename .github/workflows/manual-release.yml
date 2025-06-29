@@ -78,8 +78,7 @@ jobs:
            tar -xf toolchain.tar.xz
            rm toolchain.tar.xz
           fi
-          echo "$(pwd)/aarch64-linux-musl/bin" >> $GITHUB_PATH
-        shell: bash
+          echo "$(pwd)/aarch64-linux-musl/bin" >> "$GITHUB_PATH"
 
       - name: Checkout php-build-scripts
         uses: actions/checkout@v4
