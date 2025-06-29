@@ -56,18 +56,16 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/download_cache
-          key: compile-sh-cache-${{ github.run_id }}
-          restore-keys: |
-            compile-sh-cache-
+          key: php-cache-${{ inputs.php_version }}
+          restore-keys: php-cache-${{ inputs.php_version }}
 
       - name: Cache toolchain
         id: toolchain
         uses: actions/cache@v4
         with:
           path: aarch64-linux-musl
-          key: toolchain-${{ github.run_id }}
-          restore-keys: |
-            toolchain-
+          key: toolchain-cache-v1
+          restore-keys: toolchain-cache-v1
 
       - name: Install toolchain if not cached
         if: ${{ steps.toolchain.outputs.cache-hit != 'true' }}
