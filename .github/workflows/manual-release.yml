@@ -60,13 +60,25 @@ jobs:
           restore-keys: |
             compile-sh-cache-
 
-      - name: Install toolchain
-        working-directory: aarch64-linux-musl
+      - name: Cache toolchain
+        id: toolchain
+        uses: actions/cache@v4
+        with:
+          path: aarch64-linux-musl
+          key: toolchain-${{ github.run_id }}
+          restore-keys: |
+            toolchain-
+
+      - name: Install toolchain if not cached
         run: |
-          curl -sSLf -o toolchain.tar.xz "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz" || exit 1
-          tar -xf toolchain.tar.xz
-          echo "$(pwd)/bin" >> $GITHUB_PATH
-          rm toolchain.tar.xz
+          if [ "${{ steps.toolchain.outputs.cache-hit }}" != "true" ]; then
+           mkdir -p aarch64-linux-musl
+           cd aarch64-linux-musl
+           curl -sSLf -o toolchain.tar.xz "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz"
+           tar -xf toolchain.tar.xz
+           rm toolchain.tar.xz
+          fi
+          echo "$(pwd)/aarch64-linux-musl/bin" >> $GITHUB_PATH
 
       - name: Checkout php-build-scripts
         uses: actions/checkout@v4
