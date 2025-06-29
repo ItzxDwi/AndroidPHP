@@ -165,7 +165,7 @@ jobs:
             This release includes SHA256 hashes (`checksums.sha256`), a signature (`checksums.sig`), and a signing certificate (`checksums.cert`).
 
             You can read the verification guide here:
-            [Verification Guide](https://github.com/ItzxDwi/AndroidPHP/blob/stable/VERIFICATION.md)
+            [Verification Guide](https://github.com/ItzxDwi/AndroidPHP/blob/main/VERIFICATION.md)
 
           files: |
             release/php
