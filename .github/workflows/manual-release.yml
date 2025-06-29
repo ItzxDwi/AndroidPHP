@@ -156,4 +156,4 @@ jobs:
           files: release/*
           target_commitish: ${{ github.sha }}
           draft: false
-          prerelease: ${{ contains(inputs.tagname, 'rc') || contains(inputs.tagname, 'beta') }}
+          prerelease: ${{ contains(inputs.tagname, 'preview') }}
