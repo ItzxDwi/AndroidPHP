@@ -164,10 +164,14 @@ jobs:
             ### Verification
             This release includes SHA256 hashes (`checksums.sha256`), a signature (`checksums.sig`), and a signing certificate (`checksums.cert`).
 
-            You can read the verification instructions here:
+            You can read the verification guide here:
             [Verification Guide](https://github.com/ItzxDwi/AndroidPHP/blob/stable/VERIFICATION.md)
 
-          files: release/*
+          files: |
+            release/php
+            release/php.ini
+            release/php-android-${{ inputs.tagname }}.*
+            release/checksums.*
           target_commitish: ${{ github.sha }}
           draft: false
           prerelease: ${{ contains(inputs.tagname, 'preview') }}
