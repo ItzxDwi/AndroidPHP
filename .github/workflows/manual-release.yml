@@ -74,9 +74,6 @@ jobs:
           tar -xf toolchain.tar.xz -C ${{ env.TOOLCHAIN_DIR }}
           rm toolchain.tar.xz
 
-      - name: Add toolchain to path
-        run: echo "${{ env.TOOLCHAIN_DIR }}/bin" >> $GITHUB_PATH
-
       - name: Checkout pmmp/php-build-scripts
         uses: actions/checkout@v4
         with:
@@ -102,11 +99,12 @@ jobs:
       - name: Compile PHP
         working-directory: ${{ env.BUILD_DIR }}
         run: |
+          export PATH="${{ env.TOOLCHAIN_DIR }}/bin:$PATH"
           ./compile.sh -t android-aarch64 -x -j$(nproc)  -c ${{ env.BUILD_DIR }}/download-cache -z ${{ inputs.php_version }} -D -g -P5
 
       - name: Prepare artifacts
         run: |
-          cp ${{ env.BUILD_DIR }}/bin/php7/bin/{php,php.ini} ${{ env.OUTPUT_DIR }}/
+          mv ${{ env.BUILD_DIR }}/bin/php7/bin/{php,php.ini} ${{ env.OUTPUT_DIR }}/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -139,7 +137,8 @@ jobs:
           tar -czf php-android-${{ inputs.tagname }}.tar.gz php php.ini
           sha256sum php php.ini *.zip *.gz > checksums.sha256
 
-      - uses: sigstore/cosign-installer@v3.9.1
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.9.1
 
       - name: Sign checksums with Cosign
         working-directory: release
