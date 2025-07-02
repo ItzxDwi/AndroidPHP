@@ -1,0 +1,180 @@
+name: Build PHP Binaries
+
+on:
+  workflow_dispatch:
+    inputs:
+      tagname:
+        description: 'Tag name for release (e.g., pm5-php-8.2)'
+        required: true
+        default: 'pm5-php-8.2'
+      php_version:
+        description: 'PHP version (e.g., 8.2)'
+        required: true
+        default: '8.2'
+      commithash:
+        description: 'Specific commit hash from pmmp/php-build-scripts'
+        required: false
+        default: 'stable'
+      createRelease:
+        description: 'Publish GitHub release?'
+        required: true
+        default: 'yes'
+        type: choice
+        options: ['yes', 'no']
+
+  workflow_call:
+    inputs:
+      tagname:
+        required: true
+        type: string
+      php_version:
+        required: true
+        type: string
+      commithash:
+        required: false
+        type: string
+        default: 'stable'
+      createRelease:
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  BUILD_DIR: ${{ github.workspace }}/php-build-scripts
+  OUTPUT_DIR: ${{ github.workspace }}/output
+  TOOLCHAIN_DIR: ${{ github.workspace }}/aarch64-linux-musl
+
+jobs:
+  build:
+    name: Build PHP for Android
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Init directories
+        run: |
+          mkdir -p "${{ env.TOOLCHAIN_DIR }}" "${{ env.OUTPUT_DIR }}"
+
+      - name: Cache toolchain
+        id: toolchain-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.TOOLCHAIN_DIR }}
+          key: toolchain-v1
+          restore-keys: toolchain-v1
+
+      - name: Install toolchain if not cached
+        if: steps.toolchain-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -sSLf -o toolchain.tar.xz \
+            "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz"
+          tar -xf toolchain.tar.xz -C ${{ env.TOOLCHAIN_DIR }}
+          rm toolchain.tar.xz
+
+      - name: Add toolchain to path
+        run: echo "${{ env.TOOLCHAIN_DIR }}/bin" >> $GITHUB_PATH
+
+      - name: Checkout pmmp/php-build-scripts
+        uses: actions/checkout@v4
+        with:
+          repository: pmmp/php-build-scripts
+          path: ${{ env.BUILD_DIR }}
+          ref: ${{ inputs.commithash }}
+
+      - name: Cache PHP build
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BUILD_DIR }}/download-cache
+          key: php-cache-${{ inputs.php_version }}
+          restore-keys: php-cache-${{ inputs.php_version }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential autoconf re2c libtool libtool-bin \
+            zlib1g-dev libcurl4-openssl-dev libxml2-dev \
+            libyaml-dev libgmp-dev libzip-dev libssl-dev
+
+      - name: Compile PHP
+        working-directory: ${{ env.BUILD_DIR }}
+        run: |
+          ./compile.sh -t android-aarch64 -x -j$(nproc)  -c ${{ env.BUILD_DIR }}/download-cache -z ${{ inputs.php_version }} -D -g -P5
+
+      - name: Prepare artifacts
+        run: |
+          cp ${{ env.BUILD_DIR }}/bin/php7/bin/{php,php.ini} ${{ env.OUTPUT_DIR }}/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-php-build
+          path: ${{ env.OUTPUT_DIR }}/*
+
+  release:
+    name: Create Release
+    needs: build
+    if: ${{ inputs.createRelease == 'yes' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "date=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-php-build
+          path: release
+
+      - name: Pack files and generate checksums
+        working-directory: release
+        run: |
+          zip -9 php-android-${{ inputs.tagname }}.zip php php.ini
+          tar -czf php-android-${{ inputs.tagname }}.tar.gz php php.ini
+          sha256sum php php.ini *.zip *.gz > checksums.sha256
+
+      - uses: sigstore/cosign-installer@v3.9.1
+
+      - name: Sign checksums with Cosign
+        working-directory: release
+        run: |
+          cosign sign-blob --yes \
+            --output-signature checksums.sig \
+            --output-certificate checksums.pem \
+            checksums.sha256
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "${{ inputs.tagname }} (aarch64)"
+          tag_name: ${{ inputs.tagname }}
+          body: |
+            Pre-built PHP binary for Android ARM64 devices
+            Built by: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Last updated on **${{ steps.date.outputs.date }}**
+
+            ### Version Information
+            - PHP Version: ${{ inputs.php_version }}
+            - Target: android-aarch64
+
+            ### Verification
+            This release includes SHA256 hashes (`checksums.sha256`), a signature (`checksums.sig`), and a signing certificate (`checksums.pem`).
+
+            You can read the verification guide here:
+            [Verification Guide](https://github.com/ItzxDwi/AndroidPHP/blob/main/VERIFICATION.md)
+
+          files: |
+            release/php
+            release/php.ini
+            release/php-android-${{ inputs.tagname }}.*
+            release/checksums.*
+          target_commitish: ${{ github.sha }}
+          draft: false
+          prerelease: ${{ contains(inputs.tagname, 'preview') }}
