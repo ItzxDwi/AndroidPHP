@@ -1,5 +1,7 @@
 # 🐘 PHP Binaries for PocketMine-MP on Android
 
+[![Build PHP Binaries](https://github.com/ItzxDwi/AndroidPHP/actions/workflows/auto-trigger.yml/badge.svg)](https://github.com/ItzxDwi/AndroidPHP/actions/workflows/auto-trigger.yml)
+
 Run [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) on your **Android device** using this pre-built PHP binary.  
 - ✅ Works in **Termux**  
 - ♻️ Auto-updated **every 48 hours**  
