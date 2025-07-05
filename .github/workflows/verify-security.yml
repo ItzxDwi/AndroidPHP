@@ -26,6 +26,7 @@ jobs:
       - name: Download assets
         run: |
           gh release download ${{ steps.release.outputs.tag }} \
+            --repo "$GITHUB_REPOSITORY" \
             --pattern 'php*' \
             --pattern 'checksums.*' \
             --clobber
