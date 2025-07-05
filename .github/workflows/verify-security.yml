@@ -8,14 +8,8 @@ on:
 
 jobs:
   verify-artifacts:
-    # For workflow_dispatch runs, skip the conditional check
-    # For workflow_run triggers, only run if:
-    # 1. The Auto trigger release workflow completed successfully
-    # 2. The run-build job was executed (new_release was true)
     if: |
-     github.event_name == 'workflow_dispatch' || 
-     (github.event.workflow_run.conclusion == 'success' &&
-      contains(fromJson(github.event.workflow_run.jobs).*.name, 'run-build'))
+     github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
 
     name: Verify Security
     runs-on: ubuntu-latest
