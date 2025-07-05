@@ -1,34 +1,21 @@
 name: Verify release artifacts
 
 on:
-  release:
-    types: [published]
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Release tag (e.g., pm5-latest)"
-        required: false
-        default: "pm5-latest"
+  workflow_run:
+   workflows: [Auto trigger release, Build PHP Binaries]
+   types: [completed]
 
 jobs:
   verify-artifacts:
     name: Verify Security
     runs-on: ubuntu-latest
     steps:
-
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.9.1
 
-      - name: Get release tag
-        id: release
-        run: |
-          TAG=${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-
       - name: Download assets
         run: |
-          gh release download ${{ steps.release.outputs.tag }} \
-            --repo "ItzxDwi/AndroidPHP" \
+          gh release download --repo "ItzxDwi/AndroidPHP" \
             --pattern 'php*' \
             --pattern 'checksums.*' \
             --clobber
