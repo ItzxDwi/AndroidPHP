@@ -69,10 +69,13 @@ jobs:
       - name: Install toolchain if not cached
         if: steps.toolchain-cache.outputs.cache-hit != 'true'
         run: |
-          curl -sSLf -o toolchain.tar.xz \
-            "https://github.com/DaisukeDaisuke/musl-cross-make/releases/latest/download/aarch64-linux-musl.tar.xz"
+          gh release download --repo DaisukeDaisuke/musl-cross-make \
+            --pattern "aarch64-linux-musl.tar.xz" \
+            --output toolchain.tar.xz
           tar -xf toolchain.tar.xz -C ${{ env.TOOLCHAIN_DIR }}
           rm toolchain.tar.xz
+        env:
+         GH_TOKEN: ${{ github.token }}
 
       - name: Checkout pmmp/php-build-scripts
         uses: actions/checkout@v4
