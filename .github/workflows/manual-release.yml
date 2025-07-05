@@ -157,11 +157,17 @@ jobs:
             --output-certificate checksums.pem \
             checksums.sha256
 
+      - name: Delete previous release
+        run: |
+         gh release delete "${{ inputs.tagname }}" --cleanup-tag --yes --repo $GITHUB_REPOSITORY || true
+        env:
+         GH_TOKEN: ${{ github.token }}
+
       - name: Publish release
-        uses: softprops/action-gh-release@v2
+        uses: ncipollo/release-action@v1.18.0
         with:
           name: "${{ inputs.tagname }} (aarch64)"
-          tag_name: ${{ inputs.tagname }}
+          tag: ${{ inputs.tagname }}
           body: |
             Pre-built PHP binary for Android ARM64 devices
             Built by: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -177,12 +183,14 @@ jobs:
 
             You can read the verification guide here:
             [Verification Guide](https://github.com/ItzxDwi/AndroidPHP/blob/main/VERIFICATION.md)
-
-          files: |
+          artifacts: |
             release/php
             release/php.ini
             release/php-android-${{ inputs.tagname }}.*
             release/checksums.*
-          target_commitish: ${{ github.sha }}
+          commit: ${{ github.sha }}
+          makeLatest: true
+          allowUpdates: true
+          removeArtifacts: true
           draft: false
           prerelease: ${{ contains(inputs.tagname, 'preview') }}
