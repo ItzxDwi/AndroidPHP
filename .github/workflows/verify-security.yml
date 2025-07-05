@@ -33,8 +33,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-      - name: Verify signature
-        run: cosign verify-blob --signature checksums.sig --certificate checksums.pem checksums.sha256
+      - name: Verify Cosign signature
+        run: |
+          cosign verify-blob \
+           --signature checksums.sig \
+           --certificate checksums.pem \
+           --certificate-identity-regexp "https://github.com/$GITHUB_REPOSITORY" \
+           --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+           checksums.sha256
 
       - name: Verify checksums
         run: sha256sum -c checksums.sha256
