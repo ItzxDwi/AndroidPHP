@@ -12,7 +12,7 @@ on:
         default: "pm5-latest"
 
 jobs:
-  verify:
+  verify-artifacts:
     runs-on: ubuntu-latest
     steps:
       - uses: sigstore/cosign-installer@v3.9.1
@@ -29,6 +29,8 @@ jobs:
             --pattern 'php*' \
             --pattern 'checksums.*' \
             --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Verify signature
         run: cosign verify-blob --signature checksums.sig --certificate checksums.pem checksums.sha256
