@@ -1,6 +1,13 @@
 # 🐘 PHP Binaries for PocketMine-MP on Android
 
-[![Build PHP Binaries](https://github.com/ItzxDwi/AndroidPHP/actions/workflows/auto-trigger.yml/badge.svg)](https://github.com/ItzxDwi/AndroidPHP/actions/workflows/auto-trigger.yml)
+<p align="left">
+  <a href="https://github.com/ItzxDwi/AndroidPHP/actions/workflows/auto-trigger.yml">
+    <img src="https://github.com/ItzxDwi/AndroidPHP/actions/workflows/auto-trigger.yml/badge.svg" alt="Build PHP Binaries"/>
+  </a>
+  <a href="https://github.com/ItzxDwi/AndroidPHP/actions/workflows/verify-security.yml">
+    <img src="https://github.com/ItzxDwi/AndroidPHP/actions/workflows/verify-security.yml/badge.svg" alt="Security"/>
+  </a>
+</p>
 
 Run [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) on your **Android device** using this pre-built PHP binary.  
 - ✅ Works in **Termux**  
