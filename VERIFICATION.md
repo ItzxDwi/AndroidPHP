@@ -48,6 +48,8 @@ Download all of these files from the release page:
     ./cosign verify-blob \
       --signature checksums.sig \
       --certificate checksums.pem \
+      --certificate-identity-regexp "https://github.com/ItzxDwi/AndroidPHP" \
+      --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
       checksums.sha256
     ```
 
@@ -56,6 +58,8 @@ Download all of these files from the release page:
     .\cosign.exe verify-blob `
       --signature checksums.sig `
       --certificate checksums.pem `
+      --certificate-identity-regexp "https://github.com/ItzxDwi/AndroidPHP" `
+      --certificate-oidc-issuer "https://token.actions.githubusercontent.com" `
       checksums.sha256
     ```
 
