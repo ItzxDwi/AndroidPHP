@@ -2,15 +2,9 @@ name: Verify release artifacts
 
 on:
   workflow_dispatch:
-  workflow_run:
-   workflows: [Auto trigger release]
-   types: [completed]
 
 jobs:
   verify-artifacts:
-    if: |
-     github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
-
     name: Verify Security
     runs-on: ubuntu-latest
     steps:
