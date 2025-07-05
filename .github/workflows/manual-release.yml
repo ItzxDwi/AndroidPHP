@@ -69,7 +69,7 @@ jobs:
       - name: Install toolchain if not cached
         run: |
           gh release download --repo DaisukeDaisuke/musl-cross-make \
-            --patern "aarch64-linux-musl.tar.xz" \
+            --pattern "aarch64-linux-musl.tar.xz" \
             --output toolchain.tar.xz
           tar -xf toolchain.tar.xz -C ${{ env.TOOLCHAIN_DIR }}
           rm toolchain.tar.xz
