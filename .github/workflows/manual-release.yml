@@ -67,6 +67,7 @@ jobs:
           restore-keys: toolchain-v1
 
       - name: Install toolchain if not cached
+        if: steps.toolchain-cache.outputs.cache-hit != 'true'
         run: |
           gh release download --repo DaisukeDaisuke/musl-cross-make \
             --pattern "aarch64-linux-musl.tar.xz" \
