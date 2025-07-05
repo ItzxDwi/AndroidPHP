@@ -1,6 +1,7 @@
 name: Verify release artifacts
 
 on:
+  workflow_dispatch:
   workflow_run:
    workflows: [Auto trigger release]
    types: [completed]
@@ -11,9 +12,9 @@ jobs:
     # 1. The Auto trigger release workflow completed successfully
     # 2. The run-build job was executed (new_release was true)
     if: |
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.jobs.any(job => job.name == 'run-build' && job.conclusion == 'success')
-
+     github.event.workflow_run.conclusion == 'success' &&
+     fromJson(github.event.workflow_run.jobs).jobs[?(@.name == 'run-build')].conclusion == 'success'
+    
     name: Verify Security
     runs-on: ubuntu-latest
     steps:
