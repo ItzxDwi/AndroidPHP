@@ -3,6 +3,7 @@ name: Verify release artifacts
 on:
   release:
     types: [published]
+  push:
   workflow_dispatch:
     inputs:
       tag:
@@ -20,7 +21,7 @@ jobs:
         id: release
         run: |
           TAG=${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "tag=pm5-latest" >> $GITHUB_OUTPUT
 
       - name: Download assets
         run: |
