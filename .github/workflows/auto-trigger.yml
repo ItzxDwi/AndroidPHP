@@ -81,3 +81,13 @@ jobs:
       php_version: ${{ needs.check-latest-release.outputs.php_version }}
       createRelease: "yes"
     secrets: inherit
+
+  verify-artifacts:
+    needs: [check-latest-release, run-build]
+    if: needs.check-latest-release.outputs.new_release == 'true' && needs.run-build.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: gh workflow run verify-artifacts.yml --ref $GITHUB_REF_NAME
+        env:
+         GH_TOKEN: ${{ github.token }}
