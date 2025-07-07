@@ -88,6 +88,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: gh workflow run verify-artifacts.yml --ref $GITHUB_REF_NAME
+      - run: gh workflow run verify-security.yml --ref $GITHUB_REF_NAME
         env:
          GH_TOKEN: ${{ github.token }}
