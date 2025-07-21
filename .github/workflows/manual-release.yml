@@ -150,7 +150,7 @@ jobs:
           sha256sum php php.ini *.zip *.gz > checksums.sha256
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@v3.9.1
+        uses: sigstore/cosign-installer@v3.9.2
 
       - name: Sign checksums with Cosign
         working-directory: release
