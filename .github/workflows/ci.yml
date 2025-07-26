@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  linux:
+    name: Verify artifacts (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.9.2
+
+      - name: Download assets
+        run: |
+          gh release download --repo "ItzxDwi/AndroidPHP" \
+            --pattern 'php*' \
+            --pattern 'checksums.*' \
+            --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Verify Cosign signature
+        run: |
+          cosign verify-blob \
+           --signature checksums.sig \
+           --certificate checksums.pem \
+           --certificate-identity-regexp "https://github.com/ItzxDwi/AndroidPHP" \
+           --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+           checksums.sha256
+
+      - name: Verify checksums
+        run: sha256sum -c checksums.sha256
+
+  macos:
+    name: Verify artifacts (MacOS)
+    runs-on: macos-15
+    steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.9.2
+
+      - name: Download assets
+        run: |
+          gh release download --repo "ItzxDwi/AndroidPHP" \
+            --pattern 'php*' \
+            --pattern 'checksums.*' \
+            --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Verify Cosign signature
+        run: |
+          cosign verify-blob \
+           --signature checksums.sig \
+           --certificate checksums.pem \
+           --certificate-identity-regexp "https://github.com/ItzxDwi/AndroidPHP" \
+           --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+           checksums.sha256
+
+      - name: Verify checksums
+        run: shasum -a 256 -c checksums.sha256
+
+  windows:
+    name: Verify artifacts (Windows)
+    runs-on: windows-latest
+    steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.9.2
+
+      - name: Download assets
+        run: |
+          gh release download --repo "ItzxDwi/AndroidPHP" `
+            --pattern 'php*' `
+            --pattern 'checksums.*' `
+            --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Verify Cosign signature
+        run: |
+          cosign verify-blob `
+           --signature checksums.sig `
+           --certificate checksums.pem `
+           --certificate-identity-regexp "https://github.com/ItzxDwi/AndroidPHP" `
+           --certificate-oidc-issuer "https://token.actions.githubusercontent.com" `
+           checksums.sha256
+
+      - name: Verify checksums
+        run: sha256sum -c checksums.sha256
+        
