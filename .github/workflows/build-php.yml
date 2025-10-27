@@ -107,7 +107,7 @@ jobs:
 
       - name: Upload log on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: install-log
           path: ${{ env.BUILD_DIR }}/install.log
@@ -118,7 +118,7 @@ jobs:
           mv ${{ env.BUILD_DIR }}/bin/php7/bin/{php,php.ini} ${{ env.OUTPUT_DIR }}/
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: android-php-build
           path: ${{ env.OUTPUT_DIR }}/*
