@@ -78,7 +78,7 @@ jobs:
          GH_TOKEN: ${{ github.token }}
 
       - name: Checkout pmmp/php-build-scripts
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: pmmp/php-build-scripts
           path: ${{ env.BUILD_DIR }}
