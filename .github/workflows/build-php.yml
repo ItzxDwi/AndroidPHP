@@ -167,7 +167,7 @@ jobs:
          GH_TOKEN: ${{ github.token }}
 
       - name: Publish release
-        uses: ncipollo/release-action@v1.18.0
+        uses: ncipollo/release-action@v1.21.0
         with:
           name: "${{ inputs.tagname }} (aarch64)"
           tag: ${{ inputs.tagname }}
