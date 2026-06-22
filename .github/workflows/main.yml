@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Fetch latest release
         id: fetch-release
@@ -87,7 +87,7 @@ jobs:
     if: needs.check-latest-release.outputs.new_release == 'true' && needs.run-build.result == 'success'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: gh workflow run ci.yml --ref $GITHUB_REF_NAME
         env:
          GH_TOKEN: ${{ github.token }}
