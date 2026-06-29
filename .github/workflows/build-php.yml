@@ -60,7 +60,7 @@ jobs:
 
       - name: Cache toolchain
         id: toolchain-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.TOOLCHAIN_DIR }}
           key: toolchain-v1
@@ -85,7 +85,7 @@ jobs:
           ref: ${{ inputs.commithash }}
 
       - name: Cache PHP build
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.BUILD_DIR }}/download-cache
           key: php-cache-${{ inputs.php_version }}
